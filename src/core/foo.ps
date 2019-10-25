@@ -1,0 +1,525 @@
+%!PS-Adobe-
+%%DocumentFonts: Courier Courier-Bold
+% PSP prologue file, version 1.0
+%
+% Copyright (c) 1989 Eric J. Kostelich
+%
+save
+/PSPstart {} def
+/p {	3 1 roll
+	Linespacing mul Textoffset exch sub
+	exch Textwidth Leftmargin add mul Leftmargin add
+	exch moveto show 
+} def
+
+/Setbold { /Courier-Bold findfont Boldsize scalefont setfont } def
+/SF { /Courier findfont Pointsize scalefont setfont } def
+%
+% (string) H  - for placing boldface titles
+%
+/H { Setbold Leftmargin Titleoffset moveto show SF } def
+%
+%  Normal mode - use titles, 54 lines/page
+%
+/Usual {/Leftmargin 66 def  /Textoffset 708 def /Titleoffset 738 def
+	/Boldsize 12 def  /Pointsize 10 def /Linespacing 12 def
+	/Textwidth 480 def /Rotatemode false def
+} def
+%
+%  Plain mode - no titles, 66 lines/page
+%
+/Plain {/Leftmargin 72 def  /Textoffset 756 def
+	/Boldsize 14 def  /Pointsize 9 def /Linespacing 11 def
+	/Textwidth 480 def /Rotatemode false def
+} def
+%
+% Rotated, two-column mode - 65 lines/column
+%
+/Rotated { /Rotatemode true def } def
+/Rotatepage { 612 0 translate 90 rotate
+	/Leftmargin 36 def /Textoffset 550 def /Titleoffset 568 def
+	/Boldsize 12 def  /Pointsize 7 def  /Linespacing 8 def
+	/Textwidth 336 def
+} def
+/Startpage { Rotatemode {Rotatepage} if SF } def
+/Endpage {showpage} def
+/PSPend {restore} def
+%%EndPrologue
+Rotated
+%%Page 1 1
+Startpage
+(PhysiCell_cell_container.cpp                                      Sat Sep 21 17:34:40 2019
+       1)H
+0 0(/*)p
+0 1(###############################################################################)p
+0 2(# If you use PhysiCell in your project, please cite PhysiCell and the version #)p
+0 3(# number, such as below:                                                      #)p
+0 4(#                                                                             #)p
+0 5(# We implemented and solved the model using PhysiCell \(Version x.y.z\) [1].    #)p
+0 6(#                                                                             #)p
+0 7(# [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #)p
+0 8(#     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #)p
+0 9(#     lar Systems, PLoS Comput. Biol. 14\(2\): e1005991, 2018                   #)p
+0 10(#     DOI: 10.1371/journal.pcbi.1005991                                       #)p
+0 11(#                                                                             #)p
+0 12(# See VERSION.txt or call get_PhysiCell_version\(\) to get the current version  #)p
+0 13(#     x.y.z. Call display_citations\(\) to get detailed information on all cite-#)p
+0 14(#     able software used in your PhysiCell application.                       #)p
+0 15(#                                                                             #)p
+0 16(# Because PhysiCell extensively uses BioFVM, we suggest you also cite BioFVM  #)p
+0 17(#     as below:                                                               #)p
+0 18(#                                                                             #)p
+0 19(# We implemented and solved the model using PhysiCell \(Version x.y.z\) [1],    #)p
+0 20(# with BioFVM [2] to solve the transport equations.                           #)p
+0 21(#                                                                             #)p
+0 22(# [1] A Ghaffarizadeh, R Heiland, SH Friedman, SM Mumenthaler, and P Macklin, #)p
+0 23(#     PhysiCell: an Open Source Physics-Based Cell Simulator for Multicellu-  #)p
+0 24(#     lar Systems, PLoS Comput. Biol. 14\(2\): e1005991, 2018                   #)p
+0 25(#     DOI: 10.1371/journal.pcbi.1005991                                       #)p
+0 26(#                                                                             #)p
+0 27(# [2] A Ghaffarizadeh, SH Friedman, and P Macklin, BioFVM: an efficient para- #)p
+0 28(#     llelized diffusive transport solver for 3-D biological simulations,     #)p
+0 29(#     Bioinformatics 32\(8\): 1256-8, 2016. DOI: 10.1093/bioinformatics/btv730  #)p
+0 30(#                                                                             #)p
+0 31(###############################################################################)p
+0 32(#                                                                             #)p
+0 33(# BSD 3-Clause License \(see https://opensource.org/licenses/BSD-3-Clause\)     #)p
+0 34(#                                                                             #)p
+0 35(# Copyright \(c\) 2015-2018, Paul Macklin and the PhysiCell Project             #)p
+0 36(# All rights reserved.                                                        #)p
+0 37(#                                                                             #)p
+0 38(# Redistribution and use in source and binary forms, with or without          #)p
+0 39(# modification, are permitted provided that the following conditions are met: #)p
+0 40(#                                                                             #)p
+0 41(# 1. Redistributions of source code must retain the above copyright notice,   #)p
+0 42(# this list of conditions and the following disclaimer.                       #)p
+0 43(#                                                                             #)p
+0 44(# 2. Redistributions in binary form must reproduce the above copyright        #)p
+0 45(# notice, this list of conditions and the following disclaimer in the         #)p
+0 46(# documentation and/or other materials provided with the distribution.        #)p
+0 47(#                                                                             #)p
+0 48(# 3. Neither the name of the copyright holder nor the names of its            #)p
+0 49(# contributors may be used to endorse or promote products derived from this   #)p
+0 50(# software without specific prior written permission.                         #)p
+0 51(#                                                                             #)p
+0 52(# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" #)p
+0 53(# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE   #)p
+0 54(# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE  #)p
+0 55(# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE   #)p
+0 56(# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR         #)p
+0 57(# CONSEQUENTIAL DAMAGES \(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF        #)p
+0 58(# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS    #)p
+0 59(# INTERRUPTION\) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN     #)p
+0 60(# CONTRACT, STRICT LIABILITY, OR TORT \(INCLUDING NEGLIGENCE OR OTHERWISE\)     #)p
+0 61(# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE  #)p
+0 62(# POSSIBILITY OF SUCH DAMAGE.                                                 #)p
+0 63(#                                                                             #)p
+0 64(###############################################################################)p
+1 0(*/)p
+1 2(#include "../BioFVM/BioFVM_agent_container.h")p
+1 3(#include "PhysiCell_constants.h")p
+1 4(#include "../BioFVM/BioFVM_vector.h")p
+1 5(#include "PhysiCell_cell.h")p
+1 7(extern void solve_sbml\( PhysiCell::Cell* \);   // declare it as an external funct)p
+1 8(ion \(in addons/sbml_sim/sbml_sim.cpp\))p
+1 10(using namespace BioFVM;)p
+1 12(namespace PhysiCell{)p
+1 14(std::vector<Cell*> *all_cells;)p
+1 16(Cell_Container::Cell_Container\(\))p
+1 17({)p
+1 18(        all_cells = \(std::vector<Cell*> *\) &all_basic_agents;)p
+1 19(        boundary_condition_for_pushed_out_agents= PhysiCell_constants::default_b)p
+1 20(oundary_condition_for_pushed_out_agents;)p
+1 21(        std::vector<Cell*> cells_ready_to_divide;)p
+1 22(        std::vector<Cell*> cells_ready_to_die;)p
+1 24(        return;)p
+1 25(})p
+1 27(void Cell_Container::initialize\(double x_start, double x_end, double y_start, do)p
+1 28(uble y_end, double z_start, double z_end , double voxel_size\))p
+1 29({)p
+1 30(        initialize\(x_start, x_end, y_start, y_end, z_start, z_end , voxel_size,)p
+1 31(voxel_size, voxel_size\);)p
+1 33(        return;)p
+1 34(})p
+1 36(void Cell_Container::initialize\(double x_start, double x_end, double y_start, do)p
+1 37(uble y_end, double z_start, double z_end , double dx, double dy, double dz\))p
+1 38({)p
+1 39(        all_cells = \(std::vector<Cell*> *\) &all_basic_agents;)p
+1 40(        boundary_condition_for_pushed_out_agents= PhysiCell_constants::default_b)p
+1 41(oundary_condition_for_pushed_out_agents;)p
+1 42(        std::vector<Cell*> cells_ready_to_divide;)p
+1 43(        std::vector<Cell*> cells_ready_to_die;)p
+1 45(        underlying_mesh.resize\(x_start, x_end, y_start, y_end, z_start, z_end ,)p
+1 46(dx, dy, dz\);)p
+1 47(        agent_grid.resize\(underlying_mesh.voxels.size\(\)\);)p
+1 48(        max_cell_interactive_distance_in_voxel.resize\(underlying_mesh.voxels.siz)p
+1 49(e\(\), 0.0\);)p
+1 50(        agents_in_outer_voxels.resize\(6\);)p
+1 52(        return;)p
+1 53(})p
+1 55(void Cell_Container::update_all_cells\(double t\))p
+1 56({)p
+1 57(        // update_all_cells\(t, dt_settings.cell_cycle_dt_default, dt_settings.me)p
+1 58(chanics_dt_default\);)p
+1 60(        update_all_cells\(t, phenotype_dt, mechanics_dt , diffusion_dt \);)p
+1 62(        return;)p
+1 63(})p
+Endpage
+%%Page 3 2
+Startpage
+(PhysiCell_cell_container.cpp                                      Sat Sep 21 17:34:40 2019
+       2)H
+0 0(// deprecate me JULY 2017)p
+0 1(void Cell_Container::update_all_cells\(double t, double dt\))p
+0 2({)p
+0 3(        std::cout << "WARNING : " << __FUNCTION__ << " in " << __FILE__ << " is)p
+0 4(deprecated.")p
+0 5(                << "\\tIt returns without execution." << std::endl;)p
+0 6(        return;)p
+0 7(        update_all_cells\(t, dt,dt\);)p
+0 9(        return;)p
+0 10(})p
+0 12(// deprecate me JULY 2017)p
+0 13(void Cell_Container::update_all_cells\(double t, double phenotype_dt_ , double me)p
+0 14(chanics_dt_ \))p
+0 15({)p
+0 16(        std::cout << "WARNING : " << __FUNCTION__ << " in " << __FILE__ << " is)p
+0 17(deprecated.")p
+0 18(                << "\\tIt returns without execution." << std::endl;)p
+0 19(        return;)p
+0 21(        //if it is the time for running cell cycle, do it!)p
+0 22(        double time_since_last_cycle= t- last_cell_cycle_time;)p
+0 24(        static double phenotype_tolerance = 0.001 * phenotype_dt_;)p
+0 25(        static double mechanics_tolerance = 0.001 * mechanics_dt_;)p
+0 27(        if\( fabs\(time_since_last_cycle- phenotype_dt_ \) < phenotype_tolerance ||)p
+0 28( !initialzed\))p
+0 29(        {)p
+0 30(                // Reset the max_radius in each voxel. It will be filled in set_)p
+0 31(total_volume)p
+0 32(                // It might be better if we calculate it before mechanics each t)p
+0 33(ime)p
+0 34(                std::fill\(max_cell_interactive_distance_in_voxel.begin\(\), max_ce)p
+0 35(ll_interactive_distance_in_voxel.end\(\), 0.0\);)p
+0 37(                if\(!initialzed\))p
+0 38(                {)p
+0 39(                        time_since_last_cycle = phenotype_dt_;)p
+0 40(                })p
+0 42(                // old functions prior to 1.2.1)p
+0 43(                /*)p
+0 44(                #pragma omp parallel for)p
+0 45(                for\( int i=0; i < \(*all_cells\).size\(\); i++ \))p
+0 46(                {)p
+0 47(                        if\(\(*all_cells\)[i]->is_out_of_domain\))p
+0 48(                                continue;)p
+0 49(                        \(*all_cells\)[i]->update_cell_and_death_parameters\(\(*all_)p
+0 50(cells\)[i],cell_cycle_dt\);)p
+0 51(                        \(*all_cells\)[i]->advance_cell_current_phase\(\(*all_cells\))p
+0 52([i],time_since_last_cycle\);)p
+0 53(                        \(*all_cells\)[i]->update_volume\(\(*all_cells\)[i], time_sin)p
+0 54(ce_last_cycle \);)p
+0 55(                })p
+0 56(                */)p
+0 58(                // new as of 1.2.1 -- bundles cell phenotype parameter update, v)p
+0 59(olume update, geometry update,)p
+0 60(                // checking for death, and advancing the cell cycle. Not motilit)p
+0 61(y, though. \(that's in mechanics\))p
+0 62(                #pragma omp parallel for)p
+0 63(                for\( int i=0; i < \(*all_cells\).size\(\); i++ \))p
+0 64(                {)p
+1 0(                        if\(\(*all_cells\)[i]->is_out_of_domain\))p
+1 1(                        { continue; })p
+1 2(                        // \(*all_cells\)[i]->phenotype.advance_bundled_models\( \(*)p
+1 3(all_cells\)[i] , time_since_last_cycle \);)p
+1 4(                        \(*all_cells\)[i]->advance_bundled_phenotype_functions\( ti)p
+1 5(me_since_last_cycle \);)p
+1 6(                })p
+1 8(                // process divides / removes)p
+1 9(                for\( int i=0; i < cells_ready_to_divide.size\(\); i++ \))p
+1 10(                {)p
+1 11(                        cells_ready_to_divide[i]->divide\(\);)p
+1 12(                })p
+1 13(                for\( int i=0; i < cells_ready_to_die.size\(\); i++ \))p
+1 14(                {)p
+1 15(                        cells_ready_to_die[i]->die\(\);)p
+1 16(                })p
+1 17(                num_divisions_in_current_step+=  cells_ready_to_divide.size\(\);)p
+1 18(                num_deaths_in_current_step+=  cells_ready_to_die.size\(\);)p
+1 20(                cells_ready_to_die.clear\(\);)p
+1 21(                cells_ready_to_divide.clear\(\);)p
+1 22(                last_cell_cycle_time= t;)p
+1 23(        })p
+1 25(        double time_since_last_mechanics= t- last_mechanics_time;)p
+1 27(        // if\( time_since_last_mechanics>= mechanics_dt || !initialzed\))p
+1 28(        if\( fabs\(time_since_last_mechanics - mechanics_dt_\)< mechanics_tolerance)p
+1 29( || !initialzed\))p
+1 30(        {)p
+1 31(                if\(!initialzed\))p
+1 32(                {)p
+1 33(                        time_since_last_mechanics = mechanics_dt_;)p
+1 34(                })p
+1 35(                // Compute velocities)p
+1 36(                #pragma omp parallel for)p
+1 37(                for\( int i=0; i < \(*all_cells\).size\(\); i++ \))p
+1 38(                {)p
+1 40(                        if\(!\(*all_cells\)[i]->is_out_of_domain && \(*all_cells\)[i])p
+1 41(->is_movable\))p
+1 42(                        {)p
+1 43(                                // update_velocity already includes the motility)p
+1 44( update)p
+1 45(                                //\(*all_cells\)[i]->phenotype.motility.update_mot)p
+1 46(ility_vector\( \(*all_cells\)[i] ,\(*all_cells\)[i]->phenotype , time_since_last_mech)p
+1 47(anics \);)p
+1 48(                                \(*all_cells\)[i]->functions.update_velocity\( \(*al)p
+1 49(l_cells\)[i], \(*all_cells\)[i]->phenotype, time_since_last_mechanics\);)p
+1 50(                        })p
+1 52(                        if\( \(*all_cells\)[i]->functions.custom_cell_rule \))p
+1 53(                        {)p
+1 54(                                \(*all_cells\)[i]->functions.custom_cell_rule\(\(*al)p
+1 55(l_cells\)[i], \(*all_cells\)[i]->phenotype, time_since_last_mechanics\);)p
+1 56(                        })p
+1 57(                })p
+1 58(                // Calculate new positions)p
+1 59(                #pragma omp parallel for)p
+1 60(                for\( int i=0; i < \(*all_cells\).size\(\); i++ \))p
+1 61(                {)p
+1 62(                        if\(!\(*all_cells\)[i]->is_out_of_domain && \(*all_cells\)[i])p
+1 63(->is_movable\))p
+1 64(                        {)p
+Endpage
+%%Page 5 3
+Startpage
+(PhysiCell_cell_container.cpp                                      Sat Sep 21 17:34:40 2019
+       3)H
+0 0(                                \(*all_cells\)[i]->update_position\(time_since_last)p
+0 1(_mechanics\);)p
+0 2(                        })p
+0 3(                })p
+0 5(                // When somebody reviews this code, let's add proper braces for)p
+0 6(clarity!!!)p
+0 8(                // Update cell indices in the container)p
+0 9(                for\( int i=0; i < \(*all_cells\).size\(\); i++ \))p
+0 10(                        if\(!\(*all_cells\)[i]->is_out_of_domain && \(*all_cells\)[i])p
+0 11(->is_movable\))p
+0 12(                                \(*all_cells\)[i]->update_voxel_in_container\(\);)p
+0 13(                last_mechanics_time=t;)p
+0 14(        })p
+0 15(        initialzed=true;)p
+0 16(        return;)p
+0 17(})p
+0 19(void Cell_Container::update_all_cells\(double t, double phenotype_dt_ , double me)p
+0 20(chanics_dt_ , double diffusion_dt_ \))p
+0 21({)p
+0 22(        // secretions and uptakes. Syncing with BioFVM is automated.)p
+0 24(        #pragma omp parallel for)p
+0 25(        for\( int i=0; i < \(*all_cells\).size\(\); i++ \))p
+0 26(        {)p
+0 27(                \(*all_cells\)[i]->phenotype.secretion.advance\( \(*all_cells\)[i], \()p
+0 28(*all_cells\)[i]->phenotype , diffusion_dt_ \);)p
+0 29(        })p
+0 31(        //if it is the time for running cell cycle, do it!)p
+0 32(        double time_since_last_cycle= t- last_cell_cycle_time;)p
+0 34(        static double phenotype_dt_tolerance = 0.001 * phenotype_dt_;)p
+0 35(        static double mechanics_dt_tolerance = 0.001 * mechanics_dt_;)p
+0 37(        if\( fabs\(time_since_last_cycle-phenotype_dt_ \) < phenotype_dt_tolerance)p
+0 38(|| !initialzed\))p
+0 39(        {)p
+0 40(                // Reset the max_radius in each voxel. It will be filled in set_)p
+0 41(total_volume)p
+0 42(                // It might be better if we calculate it before mechanics each t)p
+0 43(ime)p
+0 44(                std::fill\(max_cell_interactive_distance_in_voxel.begin\(\), max_ce)p
+0 45(ll_interactive_distance_in_voxel.end\(\), 0.0\);)p
+0 47(                if\(!initialzed\))p
+0 48(                {)p
+0 49(                        time_since_last_cycle = phenotype_dt_;)p
+0 50(                })p
+0 52(                // new as of 1.2.1 -- bundles cell phenotype parameter update, v)p
+0 53(olume update, geometry update,)p
+0 54(                // checking for death, and advancing the cell cycle. Not motilit)p
+0 55(y, though. \(that's in mechanics\))p
+0 56(                #pragma omp parallel for)p
+0 57(                for\( int i=0; i < \(*all_cells\).size\(\); i++ \))p
+0 58(                {)p
+0 59(                        if\(\(*all_cells\)[i]->is_out_of_domain\))p
+0 60(                        { continue; })p
+0 61(                        // \(*all_cells\)[i]->phenotype.advance_bundled_models\( \(*)p
+0 62(all_cells\)[i] , time_since_last_cycle \);)p
+0 63(                        \(*all_cells\)[i]->advance_bundled_phenotype_functions\( ti)p
+0 64(me_since_last_cycle \);)p
+1 1(                        solve_sbml\( \(*all_cells\)[i] \);)p
+1 2(                })p
+1 4(                // process divides / removes)p
+1 5(                for\( int i=0; i < cells_ready_to_divide.size\(\); i++ \))p
+1 6(                {)p
+1 7(                        cells_ready_to_divide[i]->divide\(\);)p
+1 8(                })p
+1 9(                for\( int i=0; i < cells_ready_to_die.size\(\); i++ \))p
+1 10(                {)p
+1 11(                        cells_ready_to_die[i]->die\(\);)p
+1 12(                })p
+1 13(                num_divisions_in_current_step+=  cells_ready_to_divide.size\(\);)p
+1 14(                num_deaths_in_current_step+=  cells_ready_to_die.size\(\);)p
+1 16(                cells_ready_to_die.clear\(\);)p
+1 17(                cells_ready_to_divide.clear\(\);)p
+1 18(                last_cell_cycle_time= t;)p
+1 19(        })p
+1 21(        double time_since_last_mechanics= t- last_mechanics_time;)p
+1 23(        // if\( time_since_last_mechanics>= mechanics_dt || !initialzed\))p
+1 24(        if\( fabs\(time_since_last_mechanics - mechanics_dt_\) < mechanics_dt_toler)p
+1 25(ance || !initialzed\))p
+1 26(        {)p
+1 27(                if\(!initialzed\))p
+1 28(                {)p
+1 29(                        time_since_last_mechanics = mechanics_dt_;)p
+1 30(                })p
+1 32(                // new February 2018)p
+1 33(                // if we need gradients, compute them)p
+1 34(                if\( default_microenvironment_options.calculate_gradients \))p
+1 35(                { microenvironment.compute_all_gradient_vectors\(\);  })p
+1 36(                // end of new in Feb 2018)p
+1 38(                // Compute velocities)p
+1 39(                #pragma omp parallel for)p
+1 40(                for\( int i=0; i < \(*all_cells\).size\(\); i++ \))p
+1 41(                {)p
+1 43(                        if\(!\(*all_cells\)[i]->is_out_of_domain && \(*all_cells\)[i])p
+1 44(->is_movable && \(*all_cells\)[i]->functions.update_velocity \))p
+1 45(                        {)p
+1 46(                                // update_velocity already includes the motility)p
+1 47( update)p
+1 48(                                //\(*all_cells\)[i]->phenotype.motility.update_mot)p
+1 49(ility_vector\( \(*all_cells\)[i] ,\(*all_cells\)[i]->phenotype , time_since_last_mech)p
+1 50(anics \);)p
+1 51(                                \(*all_cells\)[i]->functions.update_velocity\( \(*al)p
+1 52(l_cells\)[i], \(*all_cells\)[i]->phenotype, time_since_last_mechanics\);)p
+1 53(                        })p
+1 55(                        if\( \(*all_cells\)[i]->functions.custom_cell_rule \))p
+1 56(                        {)p
+1 57(                                \(*all_cells\)[i]->functions.custom_cell_rule\(\(*al)p
+1 58(l_cells\)[i], \(*all_cells\)[i]->phenotype, time_since_last_mechanics\);)p
+1 59(                        })p
+1 60(                })p
+1 61(                // Calculate new positions)p
+1 62(                #pragma omp parallel for)p
+1 63(                for\( int i=0; i < \(*all_cells\).size\(\); i++ \))p
+1 64(                {)p
+Endpage
+%%Page 7 4
+Startpage
+(PhysiCell_cell_container.cpp                                      Sat Sep 21 17:34:40 2019
+       4)H
+0 0(                        if\(!\(*all_cells\)[i]->is_out_of_domain && \(*all_cells\)[i])p
+0 1(->is_movable\))p
+0 2(                        {)p
+0 3(                                \(*all_cells\)[i]->update_position\(time_since_last)p
+0 4(_mechanics\);)p
+0 5(                        })p
+0 6(                })p
+0 8(                // When somebody reviews this code, let's add proper braces for)p
+0 9(clarity!!!)p
+0 11(                // Update cell indices in the container)p
+0 12(                for\( int i=0; i < \(*all_cells\).size\(\); i++ \))p
+0 13(                        if\(!\(*all_cells\)[i]->is_out_of_domain && \(*all_cells\)[i])p
+0 14(->is_movable\))p
+0 15(                                \(*all_cells\)[i]->update_voxel_in_container\(\);)p
+0 16(                last_mechanics_time=t;)p
+0 17(        })p
+0 19(        initialzed=true;)p
+0 20(        return;)p
+0 21(})p
+0 23(void Cell_Container::register_agent\( Cell* agent \))p
+0 24({)p
+0 25(        agent_grid[agent->get_current_mechanics_voxel_index\(\)].push_back\(agent\);)p
+0 26(        return;)p
+0 27(})p
+0 29(void Cell_Container::remove_agent\(Cell* agent \))p
+0 30({)p
+0 31(        remove_agent_from_voxel\(agent, agent->get_current_mechanics_voxel_index\()p
+0 32(\)\);)p
+0 33(        return;)p
+0 34(})p
+0 36(void Cell_Container::add_agent_to_outer_voxel\(Cell* agent\))p
+0 37({)p
+0 38(        int escaping_face= find_escaping_face_index\(agent\);)p
+0 39(        agents_in_outer_voxels[escaping_face].push_back\(agent\);)p
+0 40(        agent->is_out_of_domain=true;)p
+0 41(        return;)p
+0 42(})p
+0 44(void Cell_Container::remove_agent_from_voxel\(Cell* agent, int voxel_index\))p
+0 45({)p
+0 46(        int delete_index = 0;)p
+0 47(        while\( agent_grid[voxel_index][ delete_index ] != agent \))p
+0 48(        {)p
+0 49(                delete_index++;)p
+0 50(        })p
+0 51(        // move last item to index location)p
+0 52(        agent_grid[agent->get_current_mechanics_voxel_index\(\)][delete_index] = a)p
+0 53(gent_grid[agent->get_current_mechanics_voxel_index\(\)][agent_grid[agent->get_curr)p
+0 54(ent_mechanics_voxel_index\(\)].size\(\)-1 ];)p
+0 55(        // shrink the vector)p
+0 56(        agent_grid[agent->get_current_mechanics_voxel_index\(\)].pop_back\(\);)p
+0 57(        return;)p
+0 58(})p
+0 60(void Cell_Container::add_agent_to_voxel\(Cell* agent, int voxel_index\))p
+0 61({)p
+0 62(        agent_grid[voxel_index].push_back\(agent\);)p
+0 63(        return;)p
+0 64(})p
+1 1(bool Cell_Container::contain_any_cell\(int voxel_index\))p
+1 2({)p
+1 3(        // Let's replace this with clearer statements.)p
+1 4(        return agent_grid[voxel_index].size\(\)==0?false:true;)p
+1 5(})p
+1 7(int find_escaping_face_index\(Cell* agent\))p
+1 8({)p
+1 9(        if\(agent->position[0] <= agent->get_container\(\)->underlying_mesh.boundin)p
+1 10(g_box[PhysiCell_constants::mesh_min_x_index]\))p
+1 11(        { return PhysiCell_constants::mesh_lx_face_index; })p
+1 12(        if\(agent->position[0] >= agent->get_container\(\)->underlying_mesh.boundin)p
+1 13(g_box[PhysiCell_constants::mesh_max_x_index]\))p
+1 14(        { return PhysiCell_constants::mesh_ux_face_index; })p
+1 15(        if\(agent->position[1] <= agent->get_container\(\)->underlying_mesh.boundin)p
+1 16(g_box[PhysiCell_constants::mesh_min_y_index]\))p
+1 17(        { return PhysiCell_constants::mesh_ly_face_index; })p
+1 18(        if\(agent->position[1] >= agent->get_container\(\)->underlying_mesh.boundin)p
+1 19(g_box[PhysiCell_constants::mesh_max_y_index]\))p
+1 20(        { return PhysiCell_constants::mesh_uy_face_index; })p
+1 21(        if\(agent->position[2] <= agent->get_container\(\)->underlying_mesh.boundin)p
+1 22(g_box[PhysiCell_constants::mesh_min_z_index]\))p
+1 23(        { return PhysiCell_constants::mesh_lz_face_index; })p
+1 24(        if\(agent->position[2] >= agent->get_container\(\)->underlying_mesh.boundin)p
+1 25(g_box[PhysiCell_constants::mesh_max_z_index]\))p
+1 26(        { return PhysiCell_constants::mesh_uz_face_index; })p
+1 27(        return -1;)p
+1 28(})p
+1 30(void Cell_Container::flag_cell_for_division\( Cell* pCell \))p
+1 31({)p
+1 32(        #pragma omp critical)p
+1 33(        {cells_ready_to_divide.push_back\( pCell \);})p
+1 34(        return;)p
+1 35(})p
+1 37(void Cell_Container::flag_cell_for_removal\( Cell* pCell \))p
+1 38({)p
+1 39(        #pragma omp critical)p
+1 40(        {cells_ready_to_die.push_back\( pCell \);})p
+1 41(        return;)p
+1 42(})p
+1 45(Cell_Container* create_cell_container_for_microenvironment\( BioFVM::Microenviron)p
+1 46(ment& m , double mechanics_voxel_size \))p
+1 47({)p
+1 48(        Cell_Container* cell_container = new Cell_Container;)p
+1 49(        cell_container->initialize\( m.mesh.bounding_box[0], m.mesh.bounding_box[)p
+1 50(3],)p
+1 51(                m.mesh.bounding_box[1], m.mesh.bounding_box[4],)p
+1 52(                m.mesh.bounding_box[2], m.mesh.bounding_box[5],  mechanics_voxel)p
+1 53(_size \);)p
+1 54(        m.agent_container = \(Agent_Container*\) cell_container;)p
+1 56(        if\( BioFVM::get_default_microenvironment\(\) == NULL \))p
+1 57(        {)p
+1 58(                BioFVM::set_default_microenvironment\( &m \);)p
+1 59(        })p
+1 61(        return cell_container;)p
+1 62(})p
+1 64(};)p
+Endpage
+%%Trailer
+PSPend

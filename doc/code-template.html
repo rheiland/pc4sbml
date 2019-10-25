@@ -1,0 +1,109 @@
+<code>
+        #include "./custom.h"
+
+        void create_cell_types( void )
+        {
+            // housekeeping 
+            initialize_default_cell_definition();
+            cell_defaults.phenotype.secretion.sync_to_microenvironment( &microenvironment ); 
+            
+            // Name the default cell type 
+            cell_defaults.type = 0; 
+            cell_defaults.name = "cell"; 
+            
+            // set default cell cycle model 
+            cell_defaults.functions.cycle_model = live; 
+            
+            // set default_cell_functions; 
+            cell_defaults.functions.update_phenotype = NULL; 
+            
+            // needed for a 2-D simulation: 
+            cell_defaults.functions.set_orientation = up_orientation; 
+            cell_defaults.phenotype.geometry.polarity = 1.0;
+            cell_defaults.phenotype.motility.restrict_to_2D = true; 
+            
+            // make sure the defaults are self-consistent (do this before following settings!)
+            cell_defaults.phenotype.secretion.sync_to_microenvironment( &microenvironment );
+            cell_defaults.phenotype.sync_to_functions( cell_defaults.functions ); 
+        
+        
+            // Set phenotype as you want
+        
+            // turn off birth
+            int start_index = live.find_phase_index( PhysiCell_constants::live );
+            int end_index = live.find_phase_index( PhysiCell_constants::live );
+            cell_defaults.phenotype.cycle.data.transition_rate(start_index,end_index) = 0.0; 
+        
+            // turn off death 
+            int apoptosis_model_index = cell_defaults.phenotype.death.find_death_model_index( "Apoptosis" );
+            int necrosis_model_index = cell_defaults.phenotype.death.find_death_model_index( "Necrosis" );
+            cell_defaults.phenotype.death.rates[ apoptosis_model_index ] = 0.0; 
+            cell_defaults.phenotype.death.rates[ necrosis_model_index ] = 0.0; 
+        
+            // turn off adhesion and repulsion 
+            cell_defaults.phenotype.mechanics.cell_cell_adhesion_strength = 0.0; 
+            cell_defaults.phenotype.mechanics.cell_cell_repulsion_strength = 0.0; 
+</code>
+<code>
+<em style="color: green;">
+            // set motilty parameters 
+            cell_defaults.phenotype.motility.is_motile = true;
+            cell_defaults.phenotype.motility.persistence_time = parameters.doubles("persistence_time"); 
+            cell_defaults.phenotype.motility.migration_speed = parameters.doubles("migration_speed"); 
+            cell_defaults.phenotype.motility.migration_bias_direction = { 1.0, 1.0, 0.0 };  
+            cell_defaults.phenotype.motility.migration_bias = parameters.doubles("migration_bias"); 
+</em>
+</code>
+<code>
+            return; 
+        }
+        
+        void setup_microenvironment( void )
+        {
+            // domain parameters are read from the XML configuration file
+        
+            // make sure to override and go back to 2D 
+            if( default_microenvironment_options.simulate_2D == false )
+            {
+                std::cout << "Warning: overriding XML config option and setting to 2D!" << std::endl; 
+                default_microenvironment_options.simulate_2D = true; 
+            }
+            
+            // initialize BioFVM 
+            initialize_microenvironment(); 	
+            return; 
+        }
+        
+        void setup_tissue( void )
+        {
+            static double twopi = 6.28318530717959;
+            static double four_thirds_pi =  4.188790204786391;
+            Cell* pC;
+        
+            // Create N cells, equally spaced around a circle
+            int num_cells =  parameters.ints("number_of_cells");
+            int theta_delta =  twopi / num_cells;
+            double radius = 10;
+            double theta = 0.0;
+            double x = radius * cos(theta);
+            double y = radius * sin(theta);
+            for (int idx=0; idx < num_cells; idx++)
+            {
+                pC = create_cell(); 
+                // std::cout << idx <<") cell volume= " << pC->get_total_volume() << std::endl;
+                pC->assign_position( x, y, 0.0 ); 
+                theta += theta_delta;
+                x = radius * cos(theta);
+                y = radius * sin(theta);
+            }
+            return; 
+        }
+        
+        std::vector<std::string> my_coloring_function( Cell* pCell )
+        {
+            std::vector<std::string> output( 4 , "gray" ); 
+            output[0] = "cyan";  // cytoplasm
+	        output[2] = "red";  // nucleus
+            return output; 
+        }
+</code>

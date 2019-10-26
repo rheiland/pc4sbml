@@ -13,7 +13,7 @@ from user_params import UserTab
 #from svg import SVGTab
 from substrates import SubstrateTab
 from custom_code import CodeTab
-from default_xml import DefaultXMLTab
+#from default_xml import DefaultXMLTab
 from pathlib import Path
 import platform
 import subprocess
@@ -37,7 +37,7 @@ else:
 about_tab = AboutTab()
 config_tab = ConfigTab()
 code_tab = CodeTab()
-default_xml_tab = DefaultXMLTab()
+#default_xml_tab = DefaultXMLTab()
 
 xml_file = os.path.join('data', 'PhysiCell_settings.xml')
 full_xml_filename = os.path.abspath(xml_file)

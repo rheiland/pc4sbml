@@ -12,7 +12,7 @@ from microenv_params import MicroenvTab
 from user_params import UserTab
 #from svg import SVGTab
 from substrates import SubstrateTab
-from custom_code import CodeTab
+# from custom_code import CodeTab
 #from default_xml import DefaultXMLTab
 from pathlib import Path
 import platform
@@ -36,7 +36,7 @@ else:
 # create the tabs, but don't display yet
 about_tab = AboutTab()
 config_tab = ConfigTab()
-code_tab = CodeTab()
+# code_tab = CodeTab()
 #default_xml_tab = DefaultXMLTab()
 
 xml_file = os.path.join('data', 'PhysiCell_settings.xml')
@@ -344,9 +344,9 @@ if nanoHUB_flag or hublib_flag:
 tab_height = 'auto'
 tab_layout = widgets.Layout(width='auto',height=tab_height, overflow_y='scroll',)   # border='2px solid black',
 #titles = ['About', 'Config Basics', 'Microenvironment', 'User Params', 'Out: Cells', 'Out: Substrates', 'Code', 'XML' ]
-titles = ['About', 'Config Basics', 'Microenvironment', 'User Params', 'Out: Plots', 'Code']
+titles = ['About', 'Config Basics', 'Microenvironment', 'User Params', 'Out: Plots']
 #tabs = widgets.Tab(children=[about_tab.tab, config_tab.tab, microenv_tab.tab, user_tab.tab, svg.tab, sub.tab, code_tab.tab, default_xml_tab.tab],
-tabs = widgets.Tab(children=[about_tab.tab, config_tab.tab, microenv_tab.tab, user_tab.tab, sub.tab, code_tab.tab],
+tabs = widgets.Tab(children=[about_tab.tab, config_tab.tab, microenv_tab.tab, user_tab.tab, sub.tab],
                    _titles={i: t for i, t in enumerate(titles)},
                    layout=tab_layout)
 

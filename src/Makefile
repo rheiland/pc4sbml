@@ -13,10 +13,10 @@ endif
 
 ARCH := native # best auto-tuning
 
-CFLAGS := -march=$(ARCH) -g  -fomit-frame-pointer -Xpreprocessor -fopenmp -m64 -std=c++11
+CFLAGS := -march=$(ARCH) -g  -fomit-frame-pointer -fopenmp -m64 -std=c++11
 
 #CFLAGS_LIBRR := -I/Users/heiland/dev/roadrunner-osx-10.9-cp36m/include/rr/C
-CFLAGS_LIBRR := -I$ROADRUNNER_INCLUDE/rr/C
+CFLAGS_LIBRR := -I${ROADRUNNER_INCLUDE}/rr/C
 
 COMPILE_COMMAND := $(CC) $(CFLAGS) $(CFLAGS_LIBRR) 
 
@@ -44,11 +44,8 @@ ALL_OBJECTS := $(PhysiCell_OBJECTS)  $(PhysiCell_custom_module_OBJECTS)
 
 # compile the project
 all: main.cpp $(ALL_OBJECTS)
-	#$(COMPILE_COMMAND) $(INC) -o $(PROGRAM_NAME) $(ALL_OBJECTS) main.cpp $(LIBS)
-#	$(COMPILE_COMMAND) -o $(PROGRAM_NAME) $(ALL_OBJECTS) main.cpp $(LIBS)
-#	$(COMPILE_COMMAND) $(PATH_TO_OMP) -lomp -o $(PROGRAM_NAME) $(ALL_OBJECTS) main.cpp $(LIBS)
 #	$(COMPILE_COMMAND) -L/Users/heiland/dev/roadrunner-osx-10.9-cp36m/lib -lroadrunner_c_api $(PATH_TO_OMP) -lomp -o $(PROGRAM_NAME) $(ALL_OBJECTS) main.cpp
-	$(COMPILE_COMMAND) -L/apps/share64/debian7/roadrunner/roadrunner-1.5.4/lib  -lroadrunner_c_api -o $(PROGRAM_NAME) $(ALL_OBJECTS) main.cpp
+	$(COMPILE_COMMAND) -L${ROADRUNNER_HOME}/lib -lroadrunner_c_api -o $(PROGRAM_NAME) $(ALL_OBJECTS) main.cpp
 
 
 # PhysiCell core components
@@ -164,11 +161,14 @@ reset:
 	touch ./config/empty.txt
 
 # next 2 targets for nanoHUB
-install: all
+install: 
+	. /etc/environ.sh; use -e -r roadrunner-1.5.4; make all
 	cp $(PROGRAM_NAME) ../bin
 
 distclean: clean
 	rm -f ../bin/$(PROGRAM_NAME)
+	rm -rf ../bin/__pycache__
+	rm -rf ../.ipynb_checkpoints
 
 clean:
 	rm -f *.o

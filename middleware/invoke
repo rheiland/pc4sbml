@@ -1,4 +1,4 @@
 #!/bin/sh
 
 /usr/bin/invoke_app "$@" -C "start_jupyter -A -T @tool pc4sbml.ipynb" -t pc4sbml \
-                         -u anaconda3-5.1
+                         -u anaconda3-5.1 -u roadrunner-1.5.4

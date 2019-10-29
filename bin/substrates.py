@@ -211,7 +211,9 @@ class SubstrateTab(object):
             value=True,
 #           layout=Layout(width=constWidth2),
         )
-        # def cells_toggle_cb(b):
+        def cells_toggle_cb(b):
+            # self.update()
+            self.mcds_plot.update()
         #     if (self.cells_toggle.value):
         #         self.cmap_min.disabled = False
         #         self.cmap_max.disabled = False
@@ -219,7 +221,7 @@ class SubstrateTab(object):
         #         self.cmap_min.disabled = True
         #         self.cmap_max.disabled = True
 
-        # self.cells_toggle.observe(cmap_fixed_cb)
+        self.cells_toggle.observe(cells_toggle_cb)
 
         self.substrates_toggle = Checkbox(
             description='Substrates',
@@ -278,7 +280,7 @@ class SubstrateTab(object):
             # self.tab = VBox([row1, row2, self.mcds_plot, download_row])
             # box_layout = Layout(border='0px solid')
             controls_box = VBox([row1, row2])  # ,width='50%', layout=box_layout)
-            self.tab = VBox([controls_box, self.mcds_plot])
+            self.tab = VBox([controls_box, self.mcds_plot, download_row])
         else:
             # self.tab = VBox([row1, row2])
             self.tab = VBox([row1, row2, self.mcds_plot])

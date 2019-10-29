@@ -88,7 +88,7 @@ extern "C" rrc::RRHandle createRRInstance();
 // #include <vector>
 #include <string>
 
-int oxygen_ID, glucose_ID;  // , energy_i; 
+int oxygen_ID, glucose_ID, energy_ID; 
 int energy_vi; 
 
 void create_cell_types( void )
@@ -171,11 +171,11 @@ void setup_microenvironment( void )
 
 	oxygen_ID = microenvironment.find_density_index( "oxygen" ); 
 	glucose_ID = microenvironment.find_density_index( "glucose" ); 
-  	// energy_i = microenvironment.find_density_index( "energy" ); 
+  	energy_ID = microenvironment.find_density_index( "energy" ); 
 	std::cout << "---------- setup_microenv\n";
 	std::cout << "    oxygen_ID = " << oxygen_ID << std::endl;
 	std::cout << "    glucose_ID = " << glucose_ID << std::endl;
-	// std::cout << "    energy_i = " << energy_i << std::endl;
+	std::cout << "    energy_ID = " << energy_ID << std::endl;
 
 	double oxy = 38.0;  // IC
 	double oxy_del = 9.0;
@@ -626,6 +626,8 @@ void energy_based_cell_phenotype(Cell* pCell, Phenotype& phenotype , double dt)
 	// std::cout << "\n-----> Final: t=" << result->Data[last_row_idx] <<", Energy= " <<result->Data[last_row_idx+1] <<  std::endl;
 
 	pCell->custom_data[energy_vi] = result->Data[last_row_idx+1];
+
+	microenvironment(vi)[energy_ID] = result->Data[last_row_idx+1];
 }
 
 //-------------------------------------------------------

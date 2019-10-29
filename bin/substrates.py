@@ -205,28 +205,70 @@ class SubstrateTab(object):
                     width='80%')
         field_cmap_row3 = Box(children=items_auto, layout=box_layout)
 
+        self.cells_toggle = Checkbox(
+            description='Cells',
+            disabled=False,
+            value=True,
+#           layout=Layout(width=constWidth2),
+        )
+        # def cells_toggle_cb(b):
+        #     if (self.cells_toggle.value):
+        #         self.cmap_min.disabled = False
+        #         self.cmap_max.disabled = False
+        #     else:
+        #         self.cmap_min.disabled = True
+        #         self.cmap_max.disabled = True
+
+        # self.cells_toggle.observe(cmap_fixed_cb)
+
+        self.substrates_toggle = Checkbox(
+            description='Substrates',
+            disabled=False,
+            value=True,
+#           layout=Layout(width=constWidth2),
+        )
+        def substrates_toggle_cb(b):
+            if (self.substrates_toggle.value):  # seems bass-ackwards
+                self.cmap_fixed.disabled = False
+                self.cmap_min.disabled = False
+                self.cmap_max.disabled = False
+                self.mcds_field.disabled = False
+                self.field_cmap.disabled = False
+            else:
+                self.cmap_fixed.disabled = True
+                self.cmap_min.disabled = True
+                self.cmap_max.disabled = True
+                self.mcds_field.disabled = True
+                self.field_cmap.disabled = True
+
+        self.substrates_toggle.observe(substrates_toggle_cb)
+
+
 #        field_cmap_row3 = Box([self.save_min_max, self.cmap_min, self.cmap_max])
 
         # mcds_tab = widgets.VBox([mcds_dir, mcds_plot, mcds_play], layout=tab_layout)
-        mcds_params = VBox([self.mcds_field, field_cmap_row2, field_cmap_row3, self.max_frames])  # mcds_dir
+        # mcds_params = VBox([self.mcds_field, field_cmap_row2, field_cmap_row3, self.max_frames])  # mcds_dir
 #        mcds_params = VBox([self.mcds_field, field_cmap_row2, field_cmap_row3,])  # mcds_dir
 
 #        self.tab = HBox([mcds_params, self.mcds_plot], layout=tab_layout)
 #        self.tab = HBox([mcds_params, self.mcds_plot])
 
         help_label = Label('select slider: drag or left/right arrows')
-        row1 = Box([help_label, Box( [self.max_frames, self.mcds_field, self.field_cmap], layout=Layout(border='0px solid black',
+        # row1 = Box([help_label, Box( [self.max_frames, self.mcds_field, self.field_cmap], layout=Layout(border='0px solid black',
+        row1a = Box( [self.max_frames, self.mcds_field, self.field_cmap], layout=Layout(border='1px solid black',
                             width='50%',
                             height='',
                             align_items='stretch',
                             flex_direction='row',
-                            display='flex'))] )
-        row2 = Box([self.cmap_fixed, self.cmap_min, self.cmap_max], layout=Layout(border='0px solid black',
+                            display='flex')) 
+        row1 = HBox( [row1a, self.cells_toggle])
+        row2a = Box([self.cmap_fixed, self.cmap_min, self.cmap_max], layout=Layout(border='1px solid black',
                             width='50%',
                             height='',
                             align_items='stretch',
                             flex_direction='row',
                             display='flex'))
+        row2 = HBox( [row2a, self.substrates_toggle])
         if (hublib_flag):
             self.download_button = Download('mcds.zip', style='warning', icon='cloud-download', 
                                                 tooltip='Download data', cb=self.download_cb)
@@ -234,7 +276,9 @@ class SubstrateTab(object):
 
     #        self.tab = VBox([row1, row2, self.mcds_plot])
             # self.tab = VBox([row1, row2, self.mcds_plot, download_row])
-            self.tab = VBox([row1, row2, self.mcds_plot])
+            # box_layout = Layout(border='0px solid')
+            controls_box = VBox([row1, row2])  # ,width='50%', layout=box_layout)
+            self.tab = VBox([controls_box, self.mcds_plot])
         else:
             # self.tab = VBox([row1, row2])
             self.tab = VBox([row1, row2, self.mcds_plot])
@@ -620,126 +664,128 @@ class SubstrateTab(object):
     #---------------------------------------------------------------------------
     def plot_substrate(self, frame, grid):
         # global current_idx, axes_max, gFileId, field_index
-        fname = "output%08d_microenvironment0.mat" % frame
-        xml_fname = "output%08d.xml" % frame
-        # print("--- plot_substrate")
-        # fullname = output_dir_str + fname
+        if (self.substrates_toggle.value):
+            fname = "output%08d_microenvironment0.mat" % frame
+            xml_fname = "output%08d.xml" % frame
+            # print("--- plot_substrate")
+            # fullname = output_dir_str + fname
 
-#        fullname = fname
-        full_fname = os.path.join(self.output_dir, fname)
-        full_xml_fname = os.path.join(self.output_dir, xml_fname)
-#        self.output_dir = '.'
+    #        fullname = fname
+            full_fname = os.path.join(self.output_dir, fname)
+            full_xml_fname = os.path.join(self.output_dir, xml_fname)
+    #        self.output_dir = '.'
 
-#        if not os.path.isfile(fullname):
-        if not os.path.isfile(full_fname):
-            print("Once output files are generated, click the slider.")  # No:  output00000000_microenvironment0.mat
-            return
+    #        if not os.path.isfile(fullname):
+            if not os.path.isfile(full_fname):
+                print("Once output files are generated, click the slider.")  # No:  output00000000_microenvironment0.mat
+                return
 
-#        tree = ET.parse(xml_fname)
-        tree = ET.parse(full_xml_fname)
-        xml_root = tree.getroot()
-        mins= round(int(float(xml_root.find(".//current_time").text)))  # TODO: check units = mins
-        hrs = int(mins/60)
-        days = int(hrs/24)
-        title_str = '%dd, %dh, %dm' % (int(days),(hrs%24), mins - (hrs*60))
-
-
-        info_dict = {}
-#        scipy.io.loadmat(fullname, info_dict)
-        scipy.io.loadmat(full_fname, info_dict)
-        M = info_dict['multiscale_microenvironment']
-        #     global_field_index = int(mcds_field.value)
-        #     print('plot_substrate: field_index =',field_index)
-        f = M[self.field_index, :]   # 4=tumor cells field, 5=blood vessel density, 6=growth substrate
-        # plt.clf()
-        # my_plot = plt.imshow(f.reshape(400,400), cmap='jet', extent=[0,20, 0,20])
-    
-        # self.fig = plt.figure(figsize=(7.2,6))  # this strange figsize results in a ~square contour plot
-        # self.fig = plt.figure(figsize=(24.0,20))  # this strange figsize results in a ~square contour plot
-
-        # self.fig = plt.figure(figsize=(18.0,15))  # this strange figsize results in a ~square contour plot
-
-        # plt.subplot(grid[0:1, 0:1])
-        # main_ax = self.fig.add_subplot(grid[0:1, 0:1])  # works, but tiny upper-left region
-        #main_ax = self.fig.add_subplot(grid[0:2, 0:2])
-        # main_ax = self.fig.add_subplot(grid[0:, 0:2])
-        #main_ax = self.fig.add_subplot(grid[:-1, 0:])   # nrows, ncols
-        #main_ax = self.fig.add_subplot(grid[0:, 0:])   # nrows, ncols
-        #main_ax = self.fig.add_subplot(grid[0:4, 0:])   # nrows, ncols
-        main_ax = self.fig.add_subplot(grid[0:3, 0:])   # nrows, ncols
-
-
-        # plt.rc('font', size=10)  # TODO: does this affect the Cell plots fonts too? YES. Not what we want.
-
-        #     fig.set_tight_layout(True)
-        #     ax = plt.axes([0, 0.05, 0.9, 0.9 ]) #left, bottom, width, height
-        #     ax = plt.axes([0, 0.0, 1, 1 ])
-        #     cmap = plt.cm.viridis # Blues, YlOrBr, ...
-        #     im = ax.imshow(f.reshape(100,100), interpolation='nearest', cmap=cmap, extent=[0,20, 0,20])
-        #     ax.grid(False)
-
-        # print("substrates.py: ------- numx, numy = ", self.numx, self.numy )
-        if (self.numx == 0):   # need to parse vals from the config.xml
-            fname = os.path.join(self.output_dir, "config.xml")
-            tree = ET.parse(fname)
+    #        tree = ET.parse(xml_fname)
+            tree = ET.parse(full_xml_fname)
             xml_root = tree.getroot()
-            xmin = float(xml_root.find(".//x_min").text)
-            xmax = float(xml_root.find(".//x_max").text)
-            dx = float(xml_root.find(".//dx").text)
-            ymin = float(xml_root.find(".//y_min").text)
-            ymax = float(xml_root.find(".//y_max").text)
-            dy = float(xml_root.find(".//dy").text)
-            self.numx =  math.ceil( (xmax - xmin) / dx)
-            self.numy =  math.ceil( (ymax - ymin) / dy)
-
-        xgrid = M[0, :].reshape(self.numy, self.numx)
-        ygrid = M[1, :].reshape(self.numy, self.numx)
-
-        num_contours = 15
-        levels = MaxNLocator(nbins=num_contours).tick_values(self.cmap_min.value, self.cmap_max.value)
-        contour_ok = True
-        if (self.cmap_fixed.value):
-            try:
-                substrate_plot = main_ax.contourf(xgrid, ygrid, M[self.field_index, :].reshape(self.numy, self.numx), levels=levels, extend='both', cmap=self.field_cmap.value, fontsize=self.fontsize)
-            except:
-                contour_ok = False
-                # print('got error on contourf 1.')
-        else:    
-            try:
-                substrate_plot = main_ax.contourf(xgrid, ygrid, M[self.field_index, :].reshape(self.numy,self.numx), num_contours, cmap=self.field_cmap.value)
-            except:
-                contour_ok = False
-                # print('got error on contourf 2.')
-
-        if (contour_ok):
-            main_ax.set_title(title_str, fontsize=self.fontsize)
-            main_ax.tick_params(labelsize=self.fontsize)
-           # cbar = plt.colorbar(my_plot)
-            cbar = self.fig.colorbar(substrate_plot, ax=main_ax)
-            cbar.ax.tick_params(labelsize=self.fontsize)
-            # cbar = main_ax.colorbar(my_plot)
-            # cbar.ax.tick_params(labelsize=self.fontsize)
-        # axes_min = 0
-        # axes_max = 2000
-
-        main_ax.set_xlim([self.xmin, self.xmax])
-        main_ax.set_ylim([self.ymin, self.ymax])
-
-        if (frame == 0):
-            xs = np.linspace(self.xmin,self.xmax,self.numx)
-            ys = np.linspace(self.ymin,self.ymax,self.numy)
-            hlines = np.column_stack(np.broadcast_arrays(xs[0], ys, xs[-1], ys))
-            vlines = np.column_stack(np.broadcast_arrays(xs, ys[0], xs, ys[-1]))
-            grid_lines = np.concatenate([hlines, vlines]).reshape(-1, 2, 2)
-            line_collection = LineCollection(grid_lines, color="gray", linewidths=0.5)
-            # ax = main_ax.gca()
-            main_ax.add_collection(line_collection)
-            # ax.set_xlim(xs[0], xs[-1])
-            # ax.set_ylim(ys[0], ys[-1])
+            mins= round(int(float(xml_root.find(".//current_time").text)))  # TODO: check units = mins
+            hrs = int(mins/60)
+            days = int(hrs/24)
+            title_str = '%dd, %dh, %dm' % (int(days),(hrs%24), mins - (hrs*60))
 
 
-        # Now plot the cells on top of the substrate
-        self.plot_svg(frame)
+            info_dict = {}
+    #        scipy.io.loadmat(fullname, info_dict)
+            scipy.io.loadmat(full_fname, info_dict)
+            M = info_dict['multiscale_microenvironment']
+            #     global_field_index = int(mcds_field.value)
+            #     print('plot_substrate: field_index =',field_index)
+            f = M[self.field_index, :]   # 4=tumor cells field, 5=blood vessel density, 6=growth substrate
+            # plt.clf()
+            # my_plot = plt.imshow(f.reshape(400,400), cmap='jet', extent=[0,20, 0,20])
+        
+            # self.fig = plt.figure(figsize=(7.2,6))  # this strange figsize results in a ~square contour plot
+            # self.fig = plt.figure(figsize=(24.0,20))  # this strange figsize results in a ~square contour plot
+
+            # self.fig = plt.figure(figsize=(18.0,15))  # this strange figsize results in a ~square contour plot
+
+            # plt.subplot(grid[0:1, 0:1])
+            # main_ax = self.fig.add_subplot(grid[0:1, 0:1])  # works, but tiny upper-left region
+            #main_ax = self.fig.add_subplot(grid[0:2, 0:2])
+            # main_ax = self.fig.add_subplot(grid[0:, 0:2])
+            #main_ax = self.fig.add_subplot(grid[:-1, 0:])   # nrows, ncols
+            #main_ax = self.fig.add_subplot(grid[0:, 0:])   # nrows, ncols
+            #main_ax = self.fig.add_subplot(grid[0:4, 0:])   # nrows, ncols
+            main_ax = self.fig.add_subplot(grid[0:3, 0:])   # nrows, ncols
+
+
+            # plt.rc('font', size=10)  # TODO: does this affect the Cell plots fonts too? YES. Not what we want.
+
+            #     fig.set_tight_layout(True)
+            #     ax = plt.axes([0, 0.05, 0.9, 0.9 ]) #left, bottom, width, height
+            #     ax = plt.axes([0, 0.0, 1, 1 ])
+            #     cmap = plt.cm.viridis # Blues, YlOrBr, ...
+            #     im = ax.imshow(f.reshape(100,100), interpolation='nearest', cmap=cmap, extent=[0,20, 0,20])
+            #     ax.grid(False)
+
+            # print("substrates.py: ------- numx, numy = ", self.numx, self.numy )
+            if (self.numx == 0):   # need to parse vals from the config.xml
+                fname = os.path.join(self.output_dir, "config.xml")
+                tree = ET.parse(fname)
+                xml_root = tree.getroot()
+                xmin = float(xml_root.find(".//x_min").text)
+                xmax = float(xml_root.find(".//x_max").text)
+                dx = float(xml_root.find(".//dx").text)
+                ymin = float(xml_root.find(".//y_min").text)
+                ymax = float(xml_root.find(".//y_max").text)
+                dy = float(xml_root.find(".//dy").text)
+                self.numx =  math.ceil( (xmax - xmin) / dx)
+                self.numy =  math.ceil( (ymax - ymin) / dy)
+
+            xgrid = M[0, :].reshape(self.numy, self.numx)
+            ygrid = M[1, :].reshape(self.numy, self.numx)
+
+            num_contours = 15
+            levels = MaxNLocator(nbins=num_contours).tick_values(self.cmap_min.value, self.cmap_max.value)
+            contour_ok = True
+            if (self.cmap_fixed.value):
+                try:
+                    substrate_plot = main_ax.contourf(xgrid, ygrid, M[self.field_index, :].reshape(self.numy, self.numx), levels=levels, extend='both', cmap=self.field_cmap.value, fontsize=self.fontsize)
+                except:
+                    contour_ok = False
+                    # print('got error on contourf 1.')
+            else:    
+                try:
+                    substrate_plot = main_ax.contourf(xgrid, ygrid, M[self.field_index, :].reshape(self.numy,self.numx), num_contours, cmap=self.field_cmap.value)
+                except:
+                    contour_ok = False
+                    # print('got error on contourf 2.')
+
+            if (contour_ok):
+                main_ax.set_title(title_str, fontsize=self.fontsize)
+                main_ax.tick_params(labelsize=self.fontsize)
+            # cbar = plt.colorbar(my_plot)
+                cbar = self.fig.colorbar(substrate_plot, ax=main_ax)
+                cbar.ax.tick_params(labelsize=self.fontsize)
+                # cbar = main_ax.colorbar(my_plot)
+                # cbar.ax.tick_params(labelsize=self.fontsize)
+            # axes_min = 0
+            # axes_max = 2000
+
+            main_ax.set_xlim([self.xmin, self.xmax])
+            main_ax.set_ylim([self.ymin, self.ymax])
+
+            if (frame == 0):
+                xs = np.linspace(self.xmin,self.xmax,self.numx)
+                ys = np.linspace(self.ymin,self.ymax,self.numy)
+                hlines = np.column_stack(np.broadcast_arrays(xs[0], ys, xs[-1], ys))
+                vlines = np.column_stack(np.broadcast_arrays(xs, ys[0], xs, ys[-1]))
+                grid_lines = np.concatenate([hlines, vlines]).reshape(-1, 2, 2)
+                line_collection = LineCollection(grid_lines, color="gray", linewidths=0.5)
+                # ax = main_ax.gca()
+                main_ax.add_collection(line_collection)
+                # ax.set_xlim(xs[0], xs[-1])
+                # ax.set_ylim(ys[0], ys[-1])
+
+
+        # Now plot the cells (possibly on top of the substrate)
+        if (self.cells_toggle.value):
+            self.plot_svg(frame)
 
         # plt.subplot(grid[2, 0])
         # oxy_ax = self.fig.add_subplot(grid[2:, 0:1])

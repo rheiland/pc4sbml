@@ -205,6 +205,7 @@ class SubstrateTab(object):
                     width='80%')
         field_cmap_row3 = Box(children=items_auto, layout=box_layout)
 
+        #---------------------
         self.cells_toggle = Checkbox(
             description='Cells',
             disabled=False,
@@ -223,6 +224,23 @@ class SubstrateTab(object):
 
         self.cells_toggle.observe(cells_toggle_cb)
 
+        self.cell_edges_toggle = Checkbox(
+            description='edges',
+            disabled=False,
+            value=True,
+#           layout=Layout(width=constWidth2),
+        )
+        def cell_edges_toggle_cb(b):
+            # self.update()
+            if (self.cell_edges_toggle.value):  
+                self.show_edge = True
+            else:
+                self.show_edge = False
+            self.mcds_plot.update()
+
+        self.cell_edges_toggle.observe(cell_edges_toggle_cb)
+
+        #---------------------
         self.substrates_toggle = Checkbox(
             description='Substrates',
             disabled=False,
@@ -245,6 +263,17 @@ class SubstrateTab(object):
 
         self.substrates_toggle.observe(substrates_toggle_cb)
 
+        self.grid_toggle = Checkbox(
+            description='grid',
+            disabled=False,
+            value=True,
+#           layout=Layout(width=constWidth2),
+        )
+        def grid_toggle_cb(b):
+            # self.update()
+            self.mcds_plot.update()
+
+        self.grid_toggle.observe(grid_toggle_cb)
 
 #        field_cmap_row3 = Box([self.save_min_max, self.cmap_min, self.cmap_max])
 
@@ -263,14 +292,29 @@ class SubstrateTab(object):
                             align_items='stretch',
                             flex_direction='row',
                             display='flex')) 
-        row1 = HBox( [row1a, self.cells_toggle])
+        row1b = Box( [self.cells_toggle, self.cell_edges_toggle], layout=Layout(border='1px solid black',
+                            width='50%',
+                            height='',
+                            align_items='stretch',
+                            flex_direction='row',
+                            display='flex')) 
+        row1 = HBox( [row1a, Label('.....'), row1b])
+
         row2a = Box([self.cmap_fixed, self.cmap_min, self.cmap_max], layout=Layout(border='1px solid black',
                             width='50%',
                             height='',
                             align_items='stretch',
                             flex_direction='row',
                             display='flex'))
-        row2 = HBox( [row2a, self.substrates_toggle])
+        row2b = Box( [self.substrates_toggle, self.grid_toggle], layout=Layout(border='1px solid black',
+                            width='50%',
+                            height='',
+                            align_items='stretch',
+                            flex_direction='row',
+                            display='flex')) 
+        # row2 = HBox( [row2a, self.substrates_toggle, self.grid_toggle])
+        row2 = HBox( [row2a, Label('.....'), row2b])
+
         if (hublib_flag):
             self.download_button = Download('mcds.zip', style='warning', icon='cloud-download', 
                                                 tooltip='Download data', cb=self.download_cb)
@@ -833,7 +877,12 @@ class SubstrateTab(object):
         # global current_idx, axes_max, gFileId, field_index
         #self.fig = plt.figure(figsize=(18, 12))
         #self.fig = plt.figure(figsize=(20, 15))
-        self.fig = plt.figure(figsize=(14, 14))
+        # self.fig = plt.figure(figsize=(14, 14))
+        # self.fig = plt.figure(figsize=(16.8, 14))
+        if (self.substrates_toggle.value):
+            self.fig = plt.figure(figsize=(14, 15.6))
+        else:
+            self.fig = plt.figure(figsize=(14, 14.0))
         grid = plt.GridSpec(4, 3, wspace=0.10, hspace=0.2)   # (nrows, ncols)
         self.plot_substrate(frame, grid)
         # self.plot_svg(frame)

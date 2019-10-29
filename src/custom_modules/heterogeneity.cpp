@@ -608,7 +608,7 @@ void energy_based_cell_phenotype(Cell* pCell, Phenotype& phenotype , double dt)
 	// std::cout << "\n";
 
 	// index = 0;
-	// // Print out the data
+	// // // Print out the data
 	// for (int row = 0; row < result->RSize; row++)
 	// {
 	// 	for (int col = 0; col < result->CSize; col++)
@@ -621,6 +621,11 @@ void energy_based_cell_phenotype(Cell* pCell, Phenotype& phenotype , double dt)
 	// 	}
 	// 	std::cout << "\n";
 	// }
+
+	int last_row_idx = result->CSize * (result->RSize - 1);
+	// std::cout << "\n-----> Final: t=" << result->Data[last_row_idx] <<", Energy= " <<result->Data[last_row_idx+1] <<  std::endl;
+
+	pCell->custom_data[energy_vi] = result->Data[last_row_idx+1];
 }
 
 //-------------------------------------------------------

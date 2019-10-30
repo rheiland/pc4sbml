@@ -140,6 +140,9 @@ void create_cell_types( void )
 	// set the default cell type to no phenotype updates 
 	
 	cell_defaults.functions.update_phenotype = energy_based_cell_phenotype;   // rwh 
+
+	cell_defaults.functions.update_migration_bias = cell_chemotaxis; 
+	cell_defaults.phenotype.sync_to_functions( cell_defaults.functions ); 
 	
 	cell_defaults.name = "cancer cell"; 
 	cell_defaults.type = 0; 
@@ -287,7 +290,7 @@ void setup_tissue( void )
 	
 	// Parameter<double> temp; 
 	
-	int i = parameters.doubles.find_index( "tumor_radius" ); 
+	// int i = parameters.doubles.find_index( "tumor_radius" ); 
 	
 	Cell* pCell = NULL; 
 	
@@ -297,13 +300,16 @@ void setup_tissue( void )
 	
 	// some bookkeeping 
 	energy_vi = cell_defaults.custom_data.find_variable_index( "energy" ); 
-	static int energy_i = cell_defaults.custom_data.find_variable_index( "energy" ); 
-	static int alpha_i = cell_defaults.custom_data.find_variable_index( "alpha" ); 
-	static int beta_i = cell_defaults.custom_data.find_variable_index( "beta" ); 
-	static int resistance_i = cell_defaults.custom_data.find_variable_index("resistance"); 
-	static int use_rate_i = cell_defaults.custom_data.find_variable_index( "use_rate" ); 
+
+	// static int energy_i = cell_defaults.custom_data.find_variable_index( "energy" ); 
+	// static int alpha_i = cell_defaults.custom_data.find_variable_index( "alpha" ); 
+	// static int beta_i = cell_defaults.custom_data.find_variable_index( "beta" ); 
+	// static int resistance_i = cell_defaults.custom_data.find_variable_index("resistance"); 
+	// static int use_rate_i = cell_defaults.custom_data.find_variable_index( "use_rate" ); 
 	
 	int nrows = 0; 
+	bool first_time = true;
+
 	while( y < tumor_radius )
 	{
 		// if (nrows > 0) break;    //rwh
@@ -317,39 +323,43 @@ void setup_tissue( void )
 			pCell = create_cell(); // tumor cell 
 			pCell->assign_position( x , y , 0.0 );
 
-	std::cerr << "------------->>>>>  Creating rrHandle, loadSBML file\n\n";
-		rrc::RRHandle rrHandle = createRRInstance();
-		if (!rrc::loadSBML (rrHandle, "../Toy_Model_for_PhysiCell.xml")) {
-			std::cerr << "------------->>>>>  Error while loading SBML file  <-------------\n\n";
-		// 	printf ("Error message: %s\n", getLastError());
-		// 	getchar ();
-		// 	exit (0);
-		}
-		pCell->phenotype.molecular.model_rr = rrHandle;  // assign the intracellular model to each cell
-		int r = rrc::getNumberOfReactions(rrHandle);
-		int m = rrc::getNumberOfFloatingSpecies(rrHandle);
-		int b = rrc::getNumberOfBoundarySpecies(rrHandle);
-		int p = rrc::getNumberOfGlobalParameters(rrHandle);
-		int c = rrc::getNumberOfCompartments(rrHandle);
+			// std::cerr << "------------->>>>>  Creating rrHandle, loadSBML file\n\n";
+			rrc::RRHandle rrHandle = createRRInstance();
+			if (!rrc::loadSBML (rrHandle, "../Toy_Model_for_PhysiCell.xml")) {
+				std::cerr << "------------->>>>>  Error while loading SBML file  <-------------\n\n";
+			// 	printf ("Error message: %s\n", getLastError());
+			// 	getchar ();
+			// 	exit (0);
+			}
+			pCell->phenotype.molecular.model_rr = rrHandle;  // assign the intracellular model to each cell
+			if (first_time)
+			{
+				first_time = false;
+				int r = rrc::getNumberOfReactions(rrHandle);
+				int m = rrc::getNumberOfFloatingSpecies(rrHandle);
+				int b = rrc::getNumberOfBoundarySpecies(rrHandle);
+				int p = rrc::getNumberOfGlobalParameters(rrHandle);
+				int c = rrc::getNumberOfCompartments(rrHandle);
 
-		std::cerr << "Number of reactions = " << r << std::endl;
-		std::cerr << "Number of floating species = " << m << std::endl;  // 4
-		std::cerr << "Number of boundary species = " << b << std::endl;  // 0
-		std::cerr << "Number of compartments = " << c << std::endl;  // 1
+				std::cerr << "Number of reactions = " << r << std::endl;
+				std::cerr << "Number of floating species = " << m << std::endl;  // 4
+				std::cerr << "Number of boundary species = " << b << std::endl;  // 0
+				std::cerr << "Number of compartments = " << c << std::endl;  // 1
 
-		std::cerr << "Floating species names:\n";
-		std::cerr << "-----------------------\n";
-		std::cerr << stringArrayToString(rrc::getFloatingSpeciesIds(rrHandle)) <<"\n"<< std::endl;
+				std::cerr << "Floating species names:\n";
+				std::cerr << "-----------------------\n";
+				std::cerr << stringArrayToString(rrc::getFloatingSpeciesIds(rrHandle)) <<"\n"<< std::endl;
 
-		vptr = rrc::getFloatingSpeciesConcentrations(rrHandle);
-	    std::cerr << vptr->Count << std::endl;
-   		for (int kdx=0; kdx<vptr->Count; kdx++)
-      		std::cerr << kdx << ") " << vptr->Data[kdx] << std::endl;
+				vptr = rrc::getFloatingSpeciesConcentrations(rrHandle);
+				std::cerr << vptr->Count << std::endl;
+				for (int kdx=0; kdx<vptr->Count; kdx++)
+					std::cerr << kdx << ") " << vptr->Data[kdx] << std::endl;
+			}
 			
 			//------------------------
-			pCell->custom_data[alpha_i] = UniformRandom(); 
-			pCell->custom_data[beta_i] = UniformRandom(); 
-			pCell->custom_data[resistance_i] = UniformRandom(); 
+			// pCell->custom_data[alpha_i] = UniformRandom(); 
+			// pCell->custom_data[beta_i] = UniformRandom(); 
+			// pCell->custom_data[resistance_i] = UniformRandom(); 
 
 			
 			if( fabs( y ) > 0.01 )
@@ -358,38 +368,35 @@ void setup_tissue( void )
 				pCell = create_cell(); // tumor cell 
 				pCell->assign_position( x , -y , 0.0 );
 	
-		std::cerr << "------------->>>>>  Creating rrHandle, loadSBML file\n\n";
-		rrc::RRHandle rrHandle = createRRInstance();
-		if (!rrc::loadSBML (rrHandle, "../Toy_Model_for_PhysiCell.xml")) {
-			std::cerr << "------------->>>>>  Error while loading SBML file  <-------------\n\n";
-		// 	printf ("Error message: %s\n", getLastError());
-		// 	getchar ();
-		// 	exit (0);
-		}
-		pCell->phenotype.molecular.model_rr = rrHandle;  // assign the intracellular model to each cell
-
+				// std::cerr << "------------->>>>>  Creating rrHandle, loadSBML file\n\n";
+				rrc::RRHandle rrHandle = createRRInstance();
+				if (!rrc::loadSBML (rrHandle, "../Toy_Model_for_PhysiCell.xml")) {
+					std::cerr << "------------->>>>>  Error while loading SBML file  <-------------\n\n";
+				// 	printf ("Error message: %s\n", getLastError());
+				// 	getchar ();
+				// 	exit (0);
+				}
+				pCell->phenotype.molecular.model_rr = rrHandle;  // assign the intracellular model to each cell
 				
-				pCell->custom_data[alpha_i] = UniformRandom(); 
-				pCell->custom_data[beta_i] = UniformRandom(); 
-				pCell->custom_data[resistance_i] = UniformRandom(); 
+				// pCell->custom_data[alpha_i] = UniformRandom(); 
+				// pCell->custom_data[beta_i] = UniformRandom(); 
+				// pCell->custom_data[resistance_i] = UniformRandom(); 
 			}
 			
 			if( fabs( x ) > 0.01 )
-			// if( fabs( x ) > 0.01 )
 			{ 
 				pCell = create_cell(); // tumor cell 
 				pCell->assign_position( -x , y , 0.0 );
 
-	std::cerr << "------------->>>>>  Creating rrHandle, loadSBML file\n\n";
-		rrc::RRHandle rrHandle = createRRInstance();
-		if (!rrc::loadSBML (rrHandle, "../Toy_Model_for_PhysiCell.xml")) {
-			std::cerr << "------------->>>>>  Error while loading SBML file  <-------------\n\n";
-		// 	printf ("Error message: %s\n", getLastError());
-		// 	getchar ();
-		// 	exit (0);
-		}
-		pCell->phenotype.molecular.model_rr = rrHandle;  // assign the intracellular model to each cell
-
+				// std::cerr << "------------->>>>>  Creating rrHandle, loadSBML file\n\n";
+				rrc::RRHandle rrHandle = createRRInstance();
+				if (!rrc::loadSBML (rrHandle, "../Toy_Model_for_PhysiCell.xml")) {
+					std::cerr << "------------->>>>>  Error while loading SBML file  <-------------\n\n";
+				// 	printf ("Error message: %s\n", getLastError());
+				// 	getchar ();
+				// 	exit (0);
+				}
+				pCell->phenotype.molecular.model_rr = rrHandle;  // assign the intracellular model to each cell
 
 				// std::cout << ">>>>>>>>>>>>>>>>>>>>>>\n";
 				// std::cout << "mm->getNumCompartments() =" << mm->getNumCompartments() << std::endl;
@@ -398,10 +405,9 @@ void setup_tissue( void )
 				// std::cout << "mm->getNumReactions() =" << mm->getNumReactions() << std::endl;
 				// std::cout << ">>>>>>>>>>>>>>>>>>>>>>\n\n";
 
-
-				pCell->custom_data[alpha_i] = UniformRandom(); 
-				pCell->custom_data[beta_i] = UniformRandom(); 
-				pCell->custom_data[resistance_i] = UniformRandom(); 
+				// pCell->custom_data[alpha_i] = UniformRandom(); 
+				// pCell->custom_data[beta_i] = UniformRandom(); 
+				// pCell->custom_data[resistance_i] = UniformRandom(); 
 		
 				// if( fabs( y ) > 0.01 )
 				if( fabs( y ) > 0.01 )
@@ -409,40 +415,40 @@ void setup_tissue( void )
 					pCell = create_cell(); // tumor cell 
 					pCell->assign_position( -x , -y , 0.0 );
 
-	std::cerr << "------------->>>>>  Creating rrHandle, loadSBML file\n\n";
-		rrc::RRHandle rrHandle = createRRInstance();
-		if (!rrc::loadSBML (rrHandle, "../Toy_Model_for_PhysiCell.xml")) {
-			std::cerr << "------------->>>>>  Error while loading SBML file  <-------------\n\n";
-		// 	printf ("Error message: %s\n", getLastError());
-		// 	getchar ();
-		// 	exit (0);
-		}
-		pCell->phenotype.molecular.model_rr = rrHandle;  // assign the intracellular model to each cell
-		int r = rrc::getNumberOfReactions(rrHandle);
-		int m = rrc::getNumberOfFloatingSpecies(rrHandle);
-		int b = rrc::getNumberOfBoundarySpecies(rrHandle);
-		int p = rrc::getNumberOfGlobalParameters(rrHandle);
-		int c = rrc::getNumberOfCompartments(rrHandle);
+					// std::cerr << "------------->>>>>  Creating rrHandle, loadSBML file\n\n";
+					rrc::RRHandle rrHandle = createRRInstance();
+					if (!rrc::loadSBML (rrHandle, "../Toy_Model_for_PhysiCell.xml")) {
+						std::cerr << "------------->>>>>  Error while loading SBML file  <-------------\n\n";
+					// 	printf ("Error message: %s\n", getLastError());
+					// 	getchar ();
+					// 	exit (0);
+					}
+					pCell->phenotype.molecular.model_rr = rrHandle;  // assign the intracellular model to each cell
 
-		std::cerr << "Number of reactions = " << r << std::endl;
-		std::cerr << "Number of floating species = " << m << std::endl;  // 4
-		std::cerr << "Number of boundary species = " << b << std::endl;  // 0
-		std::cerr << "Number of compartments = " << c << std::endl;  // 1
+					// int r = rrc::getNumberOfReactions(rrHandle);
+					// int m = rrc::getNumberOfFloatingSpecies(rrHandle);
+					// int b = rrc::getNumberOfBoundarySpecies(rrHandle);
+					// int p = rrc::getNumberOfGlobalParameters(rrHandle);
+					// int c = rrc::getNumberOfCompartments(rrHandle);
 
-		std::cerr << "Floating species names:\n";
-		std::cerr << "-----------------------\n";
-		std::cerr << stringArrayToString(rrc::getFloatingSpeciesIds(rrHandle)) <<"\n"<< std::endl;
+					// std::cerr << "Number of reactions = " << r << std::endl;
+					// std::cerr << "Number of floating species = " << m << std::endl;  // 4
+					// std::cerr << "Number of boundary species = " << b << std::endl;  // 0
+					// std::cerr << "Number of compartments = " << c << std::endl;  // 1
 
-		vptr = rrc::getFloatingSpeciesConcentrations(rrHandle);
-	    std::cerr << vptr->Count << std::endl;
-   		for (int kdx=0; kdx<vptr->Count; kdx++)
-      		std::cerr << kdx << ") " << vptr->Data[kdx] << std::endl;
+					// std::cerr << "Floating species names:\n";
+					// std::cerr << "-----------------------\n";
+					// std::cerr << stringArrayToString(rrc::getFloatingSpeciesIds(rrHandle)) <<"\n"<< std::endl;
+
+					// vptr = rrc::getFloatingSpeciesConcentrations(rrHandle);
+					// std::cerr << vptr->Count << std::endl;
+					// for (int kdx=0; kdx<vptr->Count; kdx++)
+					// 	std::cerr << kdx << ") " << vptr->Data[kdx] << std::endl;
 
 
-				//------------------------	
-					pCell->custom_data[alpha_i] = UniformRandom(); 
-					pCell->custom_data[beta_i] = UniformRandom(); 
-					pCell->custom_data[resistance_i] = UniformRandom(); 
+					// pCell->custom_data[alpha_i] = UniformRandom(); 
+					// pCell->custom_data[beta_i] = UniformRandom(); 
+					// pCell->custom_data[resistance_i] = UniformRandom(); 
 				}
 			}
 			x += cell_spacing; 
@@ -479,6 +485,22 @@ void tumor_cell_phenotype_with_oncoprotein( Cell* pCell, Phenotype& phenotype, d
 	return; 
 }
 
+void cell_chemotaxis( Cell* pCell, Phenotype& phenotype, double dt )
+{
+	// static double bias = parameters.doubles("macrophage_migration_bias");
+	static double bias = 0.7;
+	// static int oxygen_i = microenvironment.find_density_index( "oxygen" ); 
+	
+	phenotype.motility.migration_bias = bias; 
+	
+	phenotype.motility.migration_bias_direction = pCell->nearest_gradient( oxygen_ID ); 
+	double denominator =  norm( phenotype.motility.migration_bias_direction ) + 1e-17; 
+	
+	phenotype.motility.migration_bias_direction /= denominator; 
+	
+	return; 
+}
+
 std::vector<std::string> energy_coloring_function( Cell* pCell )
 {
 	// color 0: cytoplasm fill 
@@ -493,18 +515,34 @@ std::vector<std::string> energy_coloring_function( Cell* pCell )
 	std::vector< std::string > output( 4, "white" ); 
 
 	// std::cout << "--- energy_coloring_function: cell ID, energy = " << pCell->ID <<", "<< pCell->custom_data[energy_vi] << std::endl; 
-	if (pCell->custom_data[energy_vi] > 1.0)
-		output[0] = "rgb(0,255,0)";
-	else if (pCell->custom_data[energy_vi] > 0.8)
-		output[0] = "rgb(255,0,0)";
-	else if (pCell->custom_data[energy_vi] > 0.6)
-		output[0] = "rgb(255,255,255)";
-	else if (pCell->custom_data[energy_vi] > 0.4)
-		output[0] = "rgb(255,255,0)";
-	else if (pCell->custom_data[energy_vi] > 0.2)
-		output[0] = "rgb(0,255,255)";
-	else 
-		output[0] = "rgb(0,0,0)";
+
+	double interp = pCell->custom_data[energy_vi];
+	if (interp > 1.0)
+		interp = 1.0;
+
+	int Red   = (int) floor( 255.0*interp ); 
+	int Green = (int) floor( 255.0*interp ); 
+	// int Blue  = (int) floor( 255.0 *(1-interp) ); 
+	int Blue  = (int) floor( 255.0 *(1-interp) ); 
+	
+	char szTempString [128];
+	sprintf( szTempString , "rgb(%u,%u,%u)", Red, Green, Blue );
+	output[0].assign( szTempString );
+	output[2].assign( szTempString );
+	
+
+	// if (pCell->custom_data[energy_vi] > 1.0)
+	// 	output[0] = "rgb(0,255,0)";
+	// else if (pCell->custom_data[energy_vi] > 0.8)
+	// 	output[0] = "rgb(255,0,0)";
+	// else if (pCell->custom_data[energy_vi] > 0.6)
+	// 	output[0] = "rgb(255,255,255)";
+	// else if (pCell->custom_data[energy_vi] > 0.4)
+	// 	output[0] = "rgb(255,255,0)";
+	// else if (pCell->custom_data[energy_vi] > 0.2)
+	// 	output[0] = "rgb(0,255,255)";
+	// else 
+	// 	output[0] = "rgb(0,0,0)";
 	
 	return output; 
 }

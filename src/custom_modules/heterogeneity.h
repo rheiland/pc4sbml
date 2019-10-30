@@ -74,6 +74,8 @@ using namespace PhysiCell;
 // custom cell phenotype function to scale immunostimulatory factor with hypoxia 
 void tumor_cell_phenotype_with_oncoprotein( Cell* pCell, Phenotype& phenotype, double dt ); 
 
+void cell_chemotaxis( Cell* pCell, Phenotype& phenotype, double dt );
+
 void energy_based_cell_phenotype( Cell* pCell, Phenotype& phenotype, double dt );
 
 // set the tumor cell properties, then call the function 

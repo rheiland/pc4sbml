@@ -68,6 +68,11 @@
 #include "./heterogeneity.h"
 #include "../modules/PhysiCell_settings.h"
 
+//#include "../addons/sbml_sim/sbml_sim.h"   // for read_sbml_file()
+// #include "sbml.h"
+// #include "sbml/SBMLDocument.h"
+// #include "libsbmlsim/libsbmlsim.h"
+
 // These are for C
 // #define STATIC_RRC
 #include "rrc_api.h"
@@ -219,6 +224,55 @@ void setup_microenvironment( void )
 	
 	return; 
 }
+
+// void setup_microenvironment_orig( void )
+// {
+// 	// set domain parameters
+
+// /* now this is in XML 
+// 	default_microenvironment_options.X_range = {-1000, 1000}; 
+// 	default_microenvironment_options.Y_range = {-1000, 1000}; 
+// 	default_microenvironment_options.simulate_2D = true; 
+// */
+// 	// make sure ot override and go back to 2D 
+// 	if( default_microenvironment_options.simulate_2D == false )
+// 	{
+// 		std::cout << "Warning: overriding XML config option and setting to 2D!" << std::endl; 
+// 		default_microenvironment_options.simulate_2D = true; 
+// 	}
+	
+// /*
+// 	All this is now in XML as of 1.6.0 
+	
+// 	// no gradients needed for this example 
+	
+// 	default_microenvironment_options.calculate_gradients = false; 
+	
+// 	// let BioFVM use oxygen as the default 
+	
+// 	default_microenvironment_options.use_oxygen_as_first_field = true; 
+	
+// 	// set Dirichlet conditions 
+	
+// 	default_microenvironment_options.outer_Dirichlet_conditions = true;
+// 	default_microenvironment_options.Dirichlet_condition_vector[0] = 38; // normoxic conditions 
+	
+// 	// set initial conditions 
+// 	default_microenvironment_options.initial_condition_vector = { 38.0 }; 
+// */	
+			
+// 	initialize_microenvironment(); 	
+
+// 	oxygen_i = microenvironment.find_density_index( "oxygen" ); 
+// 	glucose_i = microenvironment.find_density_index( "glucose" ); 
+//   	// energy_i = microenvironment.find_density_index( "energy" ); 
+// 	std::cout << "---------- setup_microenv\n";
+// 	std::cout << "    oxygen_i = " << oxygen_i << std::endl;  // = 0
+// 	std::cout << "    glucose_i = " << glucose_i << std::endl;  // = 1
+// 	// std::cout << "    energy_i = " << energy_i << std::endl;  // = 2
+
+// 	return; 
+// }	
 
 void setup_tissue( void )
 {
@@ -408,11 +462,33 @@ void setup_tissue( void )
 	return; 
 }
 
+// custom cell phenotype function to scale immunostimulatory factor with hypoxia 
+void tumor_cell_phenotype_with_oncoprotein( Cell* pCell, Phenotype& phenotype, double dt )
+{
+	update_cell_and_death_parameters_O2_based(pCell,phenotype,dt);
+	
+	// if cell is dead, don't bother with future phenotype changes. 
+	if( phenotype.death.dead == true )
+	{
+		pCell->functions.update_phenotype = NULL; 		
+		return; 
+	}
+
+	// multiply proliferation rate by the oncoprotein 
+	
+	static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	static int oncoprotein_i = pCell->custom_data.find_variable_index( "oncoprotein" ); 
+
+	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) *= pCell->custom_data[oncoprotein_i] ; 
+	
+	return; 
+}
+
 void cell_chemotaxis( Cell* pCell, Phenotype& phenotype, double dt )
 {
 	// static double bias = parameters.doubles("macrophage_migration_bias");
-	// static double bias = 0.7;
-	double bias = 0.7;   // avoid OpenMP "static" declaration race condition?
+	static double bias = 0.7;
 	// static int oxygen_i = microenvironment.find_density_index( "oxygen" ); 
 	
 	phenotype.motility.migration_bias = bias; 
@@ -471,14 +547,59 @@ std::vector<std::string> energy_coloring_function( Cell* pCell )
 	return output; 
 }
 
+// std::vector<std::string> heterogeneity_coloring_function( Cell* pCell )
+// {
+// 	static int oncoprotein_i = pCell->custom_data.find_variable_index( "oncoprotein" ); 
+	
+// 	static double p_min = parameters.doubles( "oncoprotein_min" ); 
+// 	static double p_max = parameters.doubles( "oncoprotein_max" ); 
+	
+// 	// immune are black
+// 	std::vector< std::string > output( 4, "black" ); 
+	
+// 	if( pCell->type == 1 )
+// 	{ return output; } 
+	
+// 	// live cells are green, but shaded by oncoprotein value 
+// 	if( pCell->phenotype.death.dead == false )
+// 	{
+// 		int oncoprotein = (int) round( (1.0/(p_max-p_min)) * (pCell->custom_data[oncoprotein_i]-p_min) * 255.0 ); 
+// 		char szTempString [128];
+// 		sprintf( szTempString , "rgb(%u,%u,%u)", oncoprotein, oncoprotein, 255-oncoprotein );
+// 		output[0].assign( szTempString );
+// 		output[1].assign( szTempString );
+
+// 		sprintf( szTempString , "rgb(%u,%u,%u)", (int)round(output[0][0]/p_max) , (int)round(output[0][1]/p_max) , (int)round(output[0][2]/p_max) );
+// 		output[2].assign( szTempString );
+		
+// 		return output; 
+// 	}
+
+// 	// if not, dead colors 
+	
+// 	if (pCell->phenotype.cycle.current_phase().code == PhysiCell_constants::apoptotic )  // Apoptotic - Red
+// 	{
+// 		output[0] = "rgb(255,0,0)";
+// 		output[2] = "rgb(125,0,0)";
+// 	}
+	
+// 	// Necrotic - Brown
+// 	if( pCell->phenotype.cycle.current_phase().code == PhysiCell_constants::necrotic_swelling || 
+// 		pCell->phenotype.cycle.current_phase().code == PhysiCell_constants::necrotic_lysed || 
+// 		pCell->phenotype.cycle.current_phase().code == PhysiCell_constants::necrotic )
+// 	{
+// 		output[0] = "rgb(250,138,38)";
+// 		output[2] = "rgb(139,69,19)";
+// 	}	
+	
+// 	return output; 
+// }
+
 // cell_defaults.functions.update_phenotype = energy_based_cell_phenotype; 
 void energy_based_cell_phenotype(Cell* pCell, Phenotype& phenotype , double dt)
 {
-	// static int idx_glucose = 1;
-	// static int idx_oxygen = 3;
-	// #pragma omp threadprivate(idx_glucose)   // alternatively, try this??
-	int idx_glucose = 1;
-	int idx_oxygen = 3;
+	static int idx_glucose = 1;
+	static int idx_oxygen = 3;
 	rrc::RRVectorPtr vptr;
 	rrc::RRCDataPtr result;  // start time, end time, and number of points
 
@@ -546,3 +667,160 @@ void energy_based_cell_phenotype(Cell* pCell, Phenotype& phenotype , double dt)
 
 	microenvironment(vi)[energy_ID] = result->Data[last_row_idx+1];
 }
+
+//-------------------------------------------------------
+//rwh - don't use now
+// void energy_based_cell_phenotype_old( Cell* pCell, Phenotype& phenotype, double dt )
+// {
+// 	// housekeeping: one-time searches for variables 
+	
+// 		// for finding the right cycle phases 
+// 	static int cycle_start_index = live.find_phase_index( PhysiCell_constants::live ); 
+// 	static int cycle_end_index = live.find_phase_index( PhysiCell_constants::live ); 
+	
+// 		// for finding the death model indices 
+// 	static int apoptosis_i = 
+// 		cell_defaults.phenotype.death.find_death_model_index( PhysiCell_constants::apoptosis_death_model ); 
+// 	static int necrosis_i = 
+// 		cell_defaults.phenotype.death.find_death_model_index( PhysiCell_constants::necrosis_death_model ); 
+	
+// 		// for accessing the custom variables 
+// 	static int energy_i = pCell->custom_data.find_variable_index( "energy" ); 
+// 	static int alpha_i = pCell->custom_data.find_variable_index( "alpha" ); 
+// 	static int beta_i = pCell->custom_data.find_variable_index( "beta" ); 
+// 	static int resistance_i = pCell->custom_data.find_variable_index( "resistance" ); 
+// 	static int use_rate_i = pCell->custom_data.find_variable_index( "use_rate" ); 
+	
+// 		// for sampling the microenvironment
+// 	static int oxygen_i = microenvironment.find_density_index( "oxygen" );
+// 	static int glucose_i = microenvironment.find_density_index( "glucose" ); 
+// 	// static int waste_i = microenvironment.find_density_index( "waste" ); 
+	
+// 		// if I'm dead, set secretoin rates to zero, and tell us not to 
+// 		// bother checking ever again. 
+		
+// 	if( phenotype.death.dead == true )
+// 	{
+// 		phenotype.secretion.set_all_secretion_to_zero();
+// 		phenotype.secretion.set_all_uptake_to_zero();
+		
+// 		pCell->functions.update_phenotype = NULL; 
+// 		return; 
+// 	}
+	
+// 		// do the basic energy model
+// 		// use rate : u = alpha + beta + resistance 
+// 	double alpha = pCell->custom_data[alpha_i];
+// 	double beta = pCell->custom_data[beta_i]; 
+// 	double resistance = pCell->custom_data[resistance_i]; 
+		
+// 	pCell->custom_data[use_rate_i] = 0.1 + alpha + 2*beta + 2*resistance;
+// 		// sample the oxygen, glucose, and waste 
+// 	double oxygen = pCell->nearest_density_vector()[oxygen_i]; 
+// 	double glucose = pCell->nearest_density_vector()[glucose_i]; 
+// 	// double waste = pCell->nearest_density_vector()[waste_i]; 
+// 		// run the ODE. Let's use backwards Euler 
+// 	double use_rate = pCell->custom_data[use_rate_i]; 
+	
+// 	pCell->custom_data[energy_i] += 
+// 		dt*( alpha*oxygen*glucose + beta*glucose ); 
+// 	pCell->custom_data[energy_i] /= ( 1.0 + dt*use_rate );	
+	
+// 		// set secretion parameters 
+// 	// phenotype.secretion.secretion_rates[waste_i] = beta * 10.0; 
+// 	// phenotype.secretion.saturation_densities[waste_i] = 1.0; 
+// 		// set uptake rates 
+// 	phenotype.secretion.uptake_rates[oxygen_i] = alpha * 10.0; 
+// 	phenotype.secretion.uptake_rates[glucose_i] = 0.2*(alpha+beta); 
+		
+// 		// set cycle parameters 
+// 	double energy = pCell->custom_data[energy_i]; 
+// 	double scale = ( energy - 0.1 )/( 0.9 - 0.1 );
+// 	if( scale > 1.0 )
+// 	{ scale = 1.0; }
+// 	if( scale  < 0.0 )
+// 	{ scale = 0.0; } 
+// 	phenotype.cycle.data.transition_rate( cycle_start_index ,cycle_end_index ) = 
+// 		6.94e-4 * scale; 
+// 	// 1/24 hr^-1 max birth rate, in units of min^-1 
+	
+// 		// set necrotic death rate 
+// 	scale = ( 0.1 - energy )/0.1; 
+// 	if( scale < 0.0 )
+// 	{ scale = 0.0; } 
+// 	if( scale > 1.0 )
+// 	{ scale = 1.0; } 
+// 	phenotype.death.rates[necrosis_i] = scale * 0.01 ;
+// 		// 100 minute survival time when zero energy; 
+
+// 		// set the apoptotic death rate 
+// 	// scale = 1.0 + 9.0*(1.0-pCell->custom_data[resistance_i])*waste; 
+// 	scale = 1.0 + 9.0*(1.0-pCell->custom_data[resistance_i]);  // rwh  *waste; 
+// 	phenotype.death.rates[apoptosis_i] = scale * 6.94e-6; 
+	
+// //	std::cout << "\tapoptotic: " << scale << " r: " << pCell->custom_data[resistance_i] << " w: " << waste << std::endl; 
+	
+// 	// 1% of the max birth rate 
+		
+// 	return; 
+// }
+
+/*
+std::vector<std::string> energy_coloring_function_orig( Cell* pCell )
+{
+	// color 0: cytoplasm fill 
+	// color 1: outer outline 
+	// color 2: nuclear fill 
+	// color 3: nuclear outline 
+	
+	// some bookkeeping 
+	static int energy_i = pCell->custom_data.find_variable_index( "energy" ); 
+	static int alpha_i = pCell->custom_data.find_variable_index( "alpha" ); 
+	static int beta_i = pCell->custom_data.find_variable_index( "beta" ); 
+	static int resistance_i = pCell->custom_data.find_variable_index( "resistance" ); 
+	static int use_rate_i = pCell->custom_data.find_variable_index( "use_rate" ); 
+	
+	// start black 
+	std::vector< std::string > output( 4, "black" ); 
+
+	// nucleus: color by the three "genes" 
+	// red: alpha
+	// green: beta 
+	// blue: resistance 
+	// cytoplasm: energy (black = 0, white >= 1)
+	if( pCell->phenotype.death.dead == false )
+	{
+		int red = (int) round( 255.0 * pCell->custom_data[alpha_i] ); 
+		int green = (int) round( 255.0 * pCell->custom_data[beta_i] ); 
+		int blue = (int) round( 255.0 * pCell->custom_data[resistance_i] ); 
+		int grey = (int) round( 255.0 * pCell->custom_data[energy_i] ); 
+		char szTempString [128];
+		sprintf( szTempString , "rgb(%u,%u,%u)", red, green, blue );
+		output[2].assign( szTempString ); // nucleus by alpha, beta, resistance "genes"
+		sprintf( szTempString , "rgb(%u,%u,%u)", grey, grey, grey );
+		output[0].assign( szTempString ); // cyto by energy 
+		
+		return output; 
+	}
+
+	// if not, dead colors 
+	
+	if (pCell->phenotype.cycle.current_phase().code == PhysiCell_constants::apoptotic ) 
+		// Apoptotic - Red
+	{
+		output[0] = "rgb(255,0,0)";
+		output[2] = "rgb(125,0,0)";
+	}
+	
+	// Necrotic - Brown // switch to black???
+	if( pCell->phenotype.cycle.current_phase().code == PhysiCell_constants::necrotic_swelling || 
+		pCell->phenotype.cycle.current_phase().code == PhysiCell_constants::necrotic_lysed || 
+		pCell->phenotype.cycle.current_phase().code == PhysiCell_constants::necrotic )
+	{
+		output[0] = "rgb(250,138,38)";
+		output[2] = "rgb(139,69,19)";
+	}	
+	
+	return output; 
+}
+*/

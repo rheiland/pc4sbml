@@ -474,6 +474,8 @@ std::vector<std::string> energy_coloring_function( Cell* pCell )
 // cell_defaults.functions.update_phenotype = energy_based_cell_phenotype; 
 void energy_based_cell_phenotype(Cell* pCell, Phenotype& phenotype , double dt)
 {
+	#pragma omp critical
+	{
 	// static int idx_glucose = 1;
 	// static int idx_oxygen = 3;
 	// #pragma omp threadprivate(idx_glucose)   // alternatively, try this??
@@ -545,4 +547,5 @@ void energy_based_cell_phenotype(Cell* pCell, Phenotype& phenotype , double dt)
 	pCell->custom_data[energy_vi] = result->Data[last_row_idx+1];
 
 	microenvironment(vi)[energy_ID] = result->Data[last_row_idx+1];
+	}
 }

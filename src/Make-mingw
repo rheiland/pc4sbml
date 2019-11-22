@@ -46,7 +46,8 @@ ALL_OBJECTS := $(PhysiCell_OBJECTS)  $(PhysiCell_custom_module_OBJECTS)
 
 # compile the project
 all: main.cpp $(ALL_OBJECTS)
-	$(COMPILE_COMMAND) -v -lroadrunner_c_api  -o $(PROGRAM_NAME) $(ALL_OBJECTS) main.cpp
+#	$(COMPILE_COMMAND) -v -lroadrunner_c_api  -o $(PROGRAM_NAME) $(ALL_OBJECTS) main.cpp
+	$(COMPILE_COMMAND)  -L/c/Users/heiland/dev/roadrunner-win64-vs14-cp35m/bin -lroadrunner_c_api -o $(PROGRAM_NAME) $(ALL_OBJECTS) main.cpp
 
 
 # PhysiCell core components

@@ -147,7 +147,7 @@ class ConfigTab(object):
         )
         def toggle_svg_cb(b):
             if (self.toggle_svg.value):
-                # self.svg_t0.disabled = False 
+                # self.svg_t0.disabled = False
                 self.svg_interval.disabled = False
             else:
                 # self.svg_t0.disabled = True

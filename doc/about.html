@@ -1,11 +1,9 @@
 <h2><strong>GUI Overview</strong></h2>
 <ul>
-<li><b>Code</b> tab:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; the custom code (C++)</li>
 <li><b>Config Basics</b> tab: input parameters common to all models (e.g., domain grid, simulation time, choice/frequency of outputs)</li>
 <li><b>Microenvironment</b> tab:&nbsp;&nbsp; microenvironment parameters that are model-specific</li>
 <li><b>User Params</b> tab:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; user parameters that are model-specific</li>
-<li><b>Out: Cell Plots</b> tab:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; output display of the cells</li>
-<li><b>Out: Substrate Plots</b> tab: output display of the substrates</li>
+<li><b>Out: Plots</b> tab:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; output display of cells and substrates</li>
 </ul>
 Clicking the 'Run' button will use the specified parameters and start a simulation. When clicked, it creates an "Output" widget
 that can be clicked/expanded to reveal the progress (text) of the simulation. When the simulation generates output file(s),
@@ -19,7 +17,9 @@ that will terminate (not pause) the simulation.
 <p>
 This app demonstrates how you can model run an intracellular model along with PhysiCell. It uses libRoadrunner
 to read/process a SBML file that represents the intracellular model and also to solve the SBML model. 
-In this particular model, our SBML contains a set of ODEs.
+In this particular model, our SBML contains a set of ODEs. The app is still in the 
+development stage. In particular, even though the Upload widget for a SBML file is 
+enabled, it will not be used yet.
 </p>
 
 

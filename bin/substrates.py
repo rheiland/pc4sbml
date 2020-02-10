@@ -266,7 +266,7 @@ class SubstrateTab(object):
         self.grid_toggle = Checkbox(
             description='grid',
             disabled=False,
-            value=True,
+            value=False,
 #           layout=Layout(width=constWidth2),
         )
         def grid_toggle_cb(b):
@@ -306,7 +306,8 @@ class SubstrateTab(object):
                             align_items='stretch',
                             flex_direction='row',
                             display='flex'))
-        row2b = Box( [self.substrates_toggle, self.grid_toggle], layout=Layout(border='1px solid black',
+        # row2b = Box( [self.substrates_toggle, self.grid_toggle], layout=Layout(border='1px solid black',
+        row2b = Box( [self.substrates_toggle, ], layout=Layout(border='1px solid black',
                             width='50%',
                             height='',
                             align_items='stretch',
@@ -757,6 +758,7 @@ class SubstrateTab(object):
             #main_ax = self.fig.add_subplot(grid[:-1, 0:])   # nrows, ncols
             #main_ax = self.fig.add_subplot(grid[0:, 0:])   # nrows, ncols
             #main_ax = self.fig.add_subplot(grid[0:4, 0:])   # nrows, ncols
+
             main_ax = self.fig.add_subplot(grid[0:3, 0:])   # nrows, ncols
 
 
@@ -816,7 +818,8 @@ class SubstrateTab(object):
             main_ax.set_xlim([self.xmin, self.xmax])
             main_ax.set_ylim([self.ymin, self.ymax])
 
-            if (frame == 0):
+            plot_grid = False
+            if (frame == 0 and plot_grid):
                 xs = np.linspace(self.xmin,self.xmax,self.numx)
                 ys = np.linspace(self.ymin,self.ymax,self.numy)
                 hlines = np.column_stack(np.broadcast_arrays(xs[0], ys, xs[-1], ys))

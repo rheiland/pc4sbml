@@ -68,7 +68,8 @@
 
 #include "./ftest.h"
 
-int oxygen_i, glucose_i, energy_i; 
+// int oxygen_i, glucose_i, energy_i; 
+int oxygen_i, glucose_i; 
 int energy_vi; 
 
 // These are for C
@@ -102,11 +103,11 @@ void setup_microenvironment( void )
 
 	oxygen_i = microenvironment.find_density_index( "oxygen" ); 
 	glucose_i = microenvironment.find_density_index( "glucose" ); 
-  	energy_i = microenvironment.find_density_index( "energy" ); 
+  	// energy_i = microenvironment.find_density_index( "energy" ); 
 	std::cout << "---------- setup_microenv\n";
 	std::cout << "    oxygen_i = " << oxygen_i << std::endl;
 	std::cout << "    glucose_i = " << glucose_i << std::endl;
-	std::cout << "    energy_i = " << energy_i << std::endl;
+	// std::cout << "    energy_i = " << energy_i << std::endl;
 
 	double oxy = 38.0;  // IC
 	double oxy_del = 9.0;
@@ -154,11 +155,11 @@ void setup_microenvironment_tumor( void )
 
 	oxygen_i = microenvironment.find_density_index( "oxygen" ); 
 	glucose_i = microenvironment.find_density_index( "glucose" ); 
-  	energy_i = microenvironment.find_density_index( "energy" ); 
+  	// energy_i = microenvironment.find_density_index( "energy" ); 
 	std::cout << "---------- setup_microenv\n";
 	std::cout << "    oxygen_i = " << oxygen_i << std::endl;
 	std::cout << "    glucose_i = " << glucose_i << std::endl;
-	std::cout << "    energy_i = " << energy_i << std::endl;
+	// std::cout << "    energy_i = " << energy_i << std::endl;
 
 	double oxy = 38.0;  // IC
 	double oxy_del = 9.0;
@@ -329,9 +330,12 @@ std::vector<std::string> my_coloring_function( Cell* pCell )
 // cell_defaults.functions.update_phenotype = energy_based_cell_phenotype; 
 void energy_based_cell_phenotype(Cell* pCell, Phenotype& phenotype , double dt)
 {
+	static int idx_glucose = 1;
 	static int idx_oxygen = 3;
 	rrc::RRVectorPtr vptr;
 	rrc::RRCDataPtr result;  // start time, end time, and number of points
+
+	std::cout << "------ energy_based_cell_phenotype ------" << std::endl;
 
 	// pC->phenotype.molecular.model_rr = rrHandle;  // assign the intracellular model to each cell
 	vptr = rrc::getFloatingSpeciesConcentrations(pCell->phenotype.molecular.model_rr);
@@ -350,12 +354,15 @@ void energy_based_cell_phenotype(Cell* pCell, Phenotype& phenotype , double dt)
 
 	int oxygen_i = microenvironment.find_density_index( "oxygen" ); 
 	int glucose_i = microenvironment.find_density_index( "glucose" ); 
-	int energy_i = microenvironment.find_density_index( "energy" ); 
+	// int energy_i = microenvironment.find_density_index( "energy" ); 
 	int vi = microenvironment.nearest_voxel_index(pCell->position);
 	double oxy_val = microenvironment(vi)[oxygen_i];
+	double glucose_val = microenvironment(vi)[glucose_i];
 	std::cout << "oxy_val at voxel of cell = " << oxy_val << std::endl;
+	std::cout << "glucose_val at voxel of cell = " << glucose_val << std::endl;
 
 	vptr->Data[idx_oxygen] = oxy_val;
+	vptr->Data[idx_glucose] = glucose_val;
 	rrc::setFloatingSpeciesConcentrations(pCell->phenotype.molecular.model_rr, vptr);
 
 	result = rrc::simulateEx (pCell->phenotype.molecular.model_rr, 0, 10, 10);  // start time, end time, and number of points
@@ -363,11 +370,13 @@ void energy_based_cell_phenotype(Cell* pCell, Phenotype& phenotype , double dt)
 	// Print out column headers... typically time and species.
 	for (int col = 0; col < result->CSize; col++)
 	{
-		std::cout << result->ColumnHeaders[index++];
-		if (col < result->CSize - 1)
-		{
-			std::cout << "\t";
-		}
+		// std::cout << result->ColumnHeaders[index++];
+		std::cout << std::left << std::setw(15) << result->ColumnHeaders[index++];
+		// if (col < result->CSize - 1)
+		// {
+		// 	// std::cout << "\t";
+		// 	std::cout << "  ";
+		// }
 	}
 	std::cout << "\n";
 
@@ -377,14 +386,19 @@ void energy_based_cell_phenotype(Cell* pCell, Phenotype& phenotype , double dt)
 	{
 		for (int col = 0; col < result->CSize; col++)
 		{
-			std::cout << result->Data[index++];
-			if (col < result->CSize -1)
-			{
-				std::cout << "\t";
-			}
+			// std::cout << result->Data[index++];
+			std::cout << std::left << std::setw(15) << result->Data[index++];
+			// if (col < result->CSize -1)
+			// {
+			// 	// std::cout << "\t";
+			// 	std::cout << "  ";
+			// }
 		}
 		std::cout << "\n";
 	}
+	int idx = (result->RSize - 1) * result->CSize + 1;
+	std::cout << "Saving last energy value (cell custom var) = " << result->Data[idx] << std::endl;
+	pCell->custom_data[energy_vi]  = result->Data[idx];
 }
 
 std::vector<std::string> energy_coloring_function( Cell* pCell )
@@ -400,17 +414,22 @@ std::vector<std::string> energy_coloring_function( Cell* pCell )
 	std::vector< std::string > output( 4, "white" ); 
 
 	std::cout << "--- coloring fn: cell ID, energy = " << pCell->ID <<", "<< pCell->custom_data[energy_vi] << std::endl; 
-	if (pCell->custom_data[energy_vi] > 6.0)
+	if (pCell->custom_data[energy_vi] > 1.8)
 		output[0] = "rgb(0,255,0)";
-	else if (pCell->custom_data[energy_vi] > 4.0)
+	else if (pCell->custom_data[energy_vi] > 1.6)
 		output[0] = "rgb(255,0,0)";
-	else if (pCell->custom_data[energy_vi] > 3.0)
+	else if (pCell->custom_data[energy_vi] > 1.3)
 		output[0] = "rgb(255,255,255)";
-	else if (pCell->custom_data[energy_vi] > 2.0)
+	else if (pCell->custom_data[energy_vi] > 0.9)
 		output[0] = "rgb(255,255,0)";
-	else if (pCell->custom_data[energy_vi] > 1.0)
+	else if (pCell->custom_data[energy_vi] > 0.0)
 		output[0] = "rgb(0,255,255)";
 	else 
+		output[0] = "rgb(255,0,255)";
+
+	if (pCell->is_out_of_domain)
+		output[0] = "rgb(128,128,128)";
+	else if (!pCell->is_movable)
 		output[0] = "rgb(0,0,0)";
 /*
 	if( pCell->phenotype.death.dead == false )

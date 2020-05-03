@@ -4,6 +4,8 @@
 int oxygen_substrate_idx; 
 int glucose_substrate_idx; 
 int energy_cell_idx; 
+int ingest_oxy_cell_idx;
+int ingest_glu_cell_idx;
 
 // These are for C
 // #define STATIC_RRC
@@ -36,7 +38,7 @@ void setup_microenvironment( void )
 
 	oxygen_substrate_idx = microenvironment.find_density_index( "oxygen" ); 
 	glucose_substrate_idx = microenvironment.find_density_index( "glucose" ); 
-	std::cout << "---------- setup_microenv\n";
+	std::cout << "---------- setup_microenvironment() -----------\n";
 	std::cout << "    oxygen_substrate_idx = " << oxygen_substrate_idx << std::endl;
 	std::cout << "    glucose_substrate_idx = " << glucose_substrate_idx << std::endl;
 
@@ -157,14 +159,20 @@ void setup_tissue( void )
     rrc::RRCDataPtr result;  // start time, end time, and number of points
 
 	Cell* pC;
-	float xval = -600.0;
-	float yval = 1000.0;
+	// float xval = -600.0;
+	// float yval = 1000.0;
+	float xval = -100.0;
+
+	std::cout << "\n---------- setup_tissue() -----------\n";
+
 	// create just 3 cells, equally spaced in y; they'll migrate left-to-right
-	for (int idx=0; idx<3; idx++) {
-		pC = create_cell(); 
-		yval -= 500.;
+	// for (int idx=0; idx<3; idx++) {
+
+		std::cerr << "------------->>>>>  cell 1\n";
+		pC = create_cell(celltype1); 
+		int yval = 100.;
 		pC->assign_position( xval, yval, 0.0 ); 
-		pC->set_total_volume( pC->get_total_volume() * 3.0); 
+		// pC->set_total_volume( pC->get_total_volume() * 3.0); 
 
 		// Model_t *mm = SBMLDocument_getModel(sbml_doc);
 		// std::cout << "mm =" << mm << std::endl;
@@ -172,7 +180,7 @@ void setup_tissue( void )
 
 		std::cerr << "------------->>>>>  Creating rrHandle, loadSBML file\n\n";
 		rrc::RRHandle rrHandle = createRRInstance();
-		if (!rrc::loadSBML (rrHandle, "../Toy_Model_for_PhysiCell.xml")) {
+		if (!rrc::loadSBML (rrHandle, "../Toy_Model_for_PhysiCell_1.xml")) {
 			std::cerr << "------------->>>>>  Error while loading SBML file  <-------------\n\n";
 		// 	printf ("Error message: %s\n", getLastError());
 		// 	getchar ();
@@ -199,7 +207,22 @@ void setup_tissue( void )
    		for (int kdx=0; kdx<vptr->Count; kdx++)
       		std::cerr << kdx << ") " << vptr->Data[kdx] << std::endl;
 
-	}
+
+		//-------------------------
+		std::cerr << "------------->>>>>  cell 2\n";
+		pC = create_cell(celltype2); 
+		yval = -100.;
+		pC->assign_position( xval, yval, 0.0 ); 
+
+		std::cerr << "------------->>>>>  Creating rrHandle, loadSBML file\n\n";
+		rrHandle = createRRInstance();
+		if (!rrc::loadSBML (rrHandle, "../Toy_Model_for_PhysiCell_2.xml")) {
+			std::cerr << "------------->>>>>  Error while loading SBML file  <-------------\n\n";
+		 	exit (0);
+		}
+		pC->phenotype.molecular.model_rr = rrHandle;  // assign the intracellular model to each cell
+
+	// }
 	return; 
 }
 
@@ -349,4 +372,12 @@ std::vector<std::string> energy_coloring_function( Cell* pCell )
 	*/
 	
 	return output; 
+}
+void celltype1_rule(Cell* pCell, Phenotype& phenotype , double dt)
+{
+	std::cout << "------ celltype1_rule:";
+}
+void celltype2_rule(Cell* pCell, Phenotype& phenotype , double dt)
+{
+	std::cout << "-- celltype2_rule:";
 }
